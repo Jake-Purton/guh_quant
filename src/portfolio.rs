@@ -1,15 +1,9 @@
 use crate::investor::{InvestorProfile, RiskLevel};
 use crate::stocks::Stock;
-use crate::points::PointsStore;
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::time::{SystemTime, UNIX_EPOCH};
-use serde_json::json;
 
 // Learning / weighting configuration
 const RETURN_WEIGHT: f64 = 0.7; // weight given to historical return
-const POINTS_WEIGHT: f64 = 0.3; // weight given to learned points
-const POINTS_DECAY: f64 = 0.995; // per-allocation decay to slowly forget old signals
+// (Points system removed)
 
 // Concentrated allocation settings
 // When true, allocate quantities using a rank-based quantity table
@@ -22,7 +16,7 @@ const RANK_QUANTITIES: &[i32] = &[
     1, 1, 1, 1, 1, // fallback for additional ranks
 ];
 // Hard cap on number of distinct positions in any portfolio
-const MAX_POSITIONS: usize = 7;
+const MAX_POSITIONS: usize = 12;
 // Fraction of the provided budget that we allow the allocator to spend.
 // Set to 0.70 to only use 70% of the budget for purchases; the remainder
 // is intentionally left unspent as a conservative buffer.
@@ -258,6 +252,10 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
             (None, None) => a.volatility.partial_cmp(&b.volatility).unwrap(), // Fallback to volatility (lowest first)
         }
     });
+
+    // Remove stocks with negative historical returns so we never buy them.
+    // We keep stocks with no historical return (None) or zero/positive returns.
+    sorted_stocks.retain(|s| !s.historical_return.map_or(false, |r| r < 0.0));
     
     // Target number of positions based on risk tolerance
     let target_positions = match risk_level {
@@ -321,7 +319,10 @@ fn calculate_performance_weights(stocks: &[&Stock]) -> Vec<f64> {
         .iter()
         .map(|stock| {
             let return_pct = stock.historical_return.unwrap_or(0.0);
-            if return_pct > 0.0 { return_pct } else { 1.0 } // Min weight for negative returns
+            // Do not give negative returns an artificial positive weight; use 0.0
+            // so negative historical performance won't be favored over small
+            // positive returns.
+            return_pct.max(0.0)
         })
         .collect();
     
@@ -345,26 +346,13 @@ fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usi
         return Vec::new();
     }
     
-    // Load points store and apply decay
-    let mut points = PointsStore::load("points_store.json");
-    points.decay_all(POINTS_DECAY);
-
     // Base return-based weights (normalized)
     let return_weights = calculate_performance_weights(&top_stocks);
-
-    // Points-based weights (normalize if non-zero)
-    let points_raw: Vec<f64> = top_stocks.iter().map(|s| points.get_score(&s.ticker)).collect();
-    let points_total: f64 = points_raw.iter().sum();
-    let points_weights: Vec<f64> = if points_total > 0.0 {
-        points_raw.iter().map(|p| p / points_total).collect()
-    } else {
-        vec![1.0 / (top_stocks.len() as f64); top_stocks.len()]
-    };
 
     // Combined score: weighted blend of historical returns and learned points
     let mut combined: Vec<f64> = Vec::with_capacity(top_stocks.len());
     for i in 0..top_stocks.len() {
-        let c = RETURN_WEIGHT * return_weights[i] + POINTS_WEIGHT * points_weights[i];
+            let c = RETURN_WEIGHT * return_weights[i]; // Only using return weights now
         combined.push(c);
     }
 
@@ -427,10 +415,10 @@ fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usi
             return build_greedy_portfolio(stocks, budget);
         }
 
-        // Deploy any small remaining budget into the top performer
+        // Deploy any small remaining budget into affordable non-negative-return performers
         let remaining = budget - allocated;
         if remaining > 0.0 {
-            deploy_remaining_budget(&mut portfolio, remaining, top_stocks[0], budget);
+            deploy_remaining_budget(&mut portfolio, remaining, top_stocks[0], budget, stocks);
         }
     } else {
         // Proportional legacy allocation (unchanged)
@@ -455,87 +443,75 @@ fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usi
         // Deploy remaining budget into top combined performer
         let remaining = budget - allocated;
         if remaining > 0.0 {
-            deploy_remaining_budget(&mut portfolio, remaining, top_stocks[0], budget);
+            deploy_remaining_budget(&mut portfolio, remaining, top_stocks[0], budget, stocks);
         }
     }
 
     // FINAL SAFETY CHECK: Validate budget
-    // If the portfolio would have been over budget we record a strong
-    // negative learning signal (-500 points) for the attempted tickers so
-    // the learner learns to avoid allocations that exceed budget.
-    let portfolio_before_final = portfolio.clone();
-    let mut overbudget = false;
     if !validate_budget(&portfolio, stocks, budget) {
         eprintln!("[EMERGENCY] Force-fitting portfolio within budget...");
-        overbudget = true;
         force_within_budget(&mut portfolio, stocks, budget);
     }
 
-    // Update points store based on realized historical returns (small learning step)
-    for (ticker, qty) in &portfolio {
-        if let Some(s) = top_stocks.iter().find(|st| &st.ticker == ticker) {
-            let ret_pct = s.historical_return.unwrap_or(0.0);
-            // Convert percent-ish returns to a modest delta; scale by qty
-            let delta = (ret_pct / 100.0) * (*qty as f64) * 2.0; // tunable
-            points.add_score(ticker, delta);
-        }
-    }
-
-    // If we detected an overbudget condition earlier, apply a heavy penalty
-    // to all tickers that were part of the attempted portfolio. This signals
-    // the learner that producing portfolios which exceed budget is very bad.
-    if overbudget {
-        // Write an overbudget event to `overbudget_events.jsonl` for offline
-        // analysis. Format: JSONL with fields {ts, budget, total_cost, over_by, portfolio: [{ticker, quantity}, ...]}
-        let total_before = calculate_portfolio_cost(&portfolio_before_final, stocks);
-        let over_by = (total_before - budget).max(0.0);
-        let ts = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
-        let port_json: Vec<serde_json::Value> = portfolio_before_final.iter().map(|(t, q)| json!({"ticker": t, "quantity": q})).collect();
-        let entry = json!({
-            "ts": ts,
-            "budget": budget,
-            "total_cost": total_before,
-            "over_by": over_by,
-            "portfolio": port_json
-        });
-        if let Ok(mut f) = OpenOptions::new().create(true).append(true).open("overbudget_events.jsonl") {
-            let _ = f.write_all(format!("{}\n", entry.to_string()).as_bytes());
-        } else {
-            eprintln!("[WARN] Could not open overbudget_events.jsonl for append");
-        }
-
-        for (ticker, _qty) in &portfolio_before_final {
-            eprintln!("[POINTS] Applying overbudget penalty (-500) to {}", ticker);
-            points.add_score(ticker, -500.0);
-        }
-    }
-
-    // Persist updated points
-    points.save();
+        // (Points system removed) — no learned-score updates or persistence.
 
     portfolio
 }
 
 /// Deploy remaining budget into the best performing stock
-fn deploy_remaining_budget(portfolio: &mut Vec<(String, i32)>, remaining: f64, top_stock: &Stock, budget: f64) {
+fn deploy_remaining_budget(portfolio: &mut Vec<(String, i32)>, mut remaining: f64, _top_stock: &Stock, budget: f64, stocks: &[Stock]) {
     if remaining <= 0.0 {
         return;
     }
-    
-    // Use current price when deploying remaining budget (submission uses current prices)
-    let price = top_stock.get_current_price();
-    let extra_qty = (remaining / price).floor() as i32;
-    
-    if extra_qty > 0 {
-        // SAFETY CHECK: Verify this doesn't exceed budget
-        let extra_cost = (extra_qty as f64) * price;
-        if extra_cost <= remaining && extra_cost <= budget {
+
+    // Build a list of candidate stocks that can be bought with the remaining
+    // budget (use current prices). Sort cheapest-first so we consume small
+    // remainders buying whole shares where possible.
+    let mut candidates: Vec<(&Stock, f64)> = stocks
+        .iter()
+        .map(|s| (s, s.get_current_price()))
+        // Only consider stocks with non-negative historical returns (i.e. exclude negative-return stocks)
+        .filter(|(s, price)| *price > 0.0 && *price <= remaining && !s.historical_return.map_or(false, |r| r < 0.0))
+        .collect();
+
+    // If nothing is affordable, try to include slightly-more-expensive stocks
+    // and see if buying a single share is possible after other purchases.
+    if candidates.is_empty() {
+        // find overall cheapest stock > 0
+        if let Some((smin, pmin)) = stocks.iter().map(|s| (s, s.get_current_price())).filter(|(s,p)| *p>0.0 && !s.historical_return.map_or(false, |r| r < 0.0)).min_by(|a,b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal)) {
+            // If even the cheapest stock is more expensive than remaining, nothing to do
+            if pmin > remaining { return; }
+            candidates.push((smin, pmin));
+        } else {
+            return;
+        }
+    }
+
+    candidates.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
+
+    // Try to spend remaining on cheapest candidates until we can't afford any more
+    for (stock, price) in candidates.iter() {
+        if *price <= 0.0 { continue; }
+
+        // Determine how many whole shares we can buy of this candidate
+        let afford_qty = (remaining / *price).floor() as i32;
+        if afford_qty <= 0 { continue; }
+
+        let cost = (afford_qty as f64) * *price;
+        // SAFETY: don't exceed original budget
+        if cost <= remaining && cost <= budget {
             // Add to existing position or create new one
-            if let Some(pos) = portfolio.iter_mut().find(|(t, _)| t == &top_stock.ticker) {
-                pos.1 += extra_qty;
+            if let Some(pos) = portfolio.iter_mut().find(|(t, _)| t == &stock.ticker) {
+                pos.1 += afford_qty;
             } else {
-                portfolio.push((top_stock.ticker.clone(), extra_qty));
+                portfolio.push((stock.ticker.clone(), afford_qty));
             }
+            remaining -= cost;
+        }
+
+        // Stop early if remaining is now too small to buy anything else
+        if remaining <= 0.0 {
+            break;
         }
     }
 }
@@ -549,6 +525,9 @@ fn build_greedy_portfolio(stocks: &[Stock], budget: f64) -> Vec<(String, i32)> {
     let mut affordable_stocks: Vec<&Stock> = stocks
         .iter()
         .filter(|s| s.get_current_price() <= budget)  // Use original budget, not remaining
+        // Exclude any stocks with negative historical returns so greedy allocation
+        // doesn't buy them.
+        .filter(|s| !s.historical_return.map_or(false, |r| r < 0.0))
         .collect();
     
     if affordable_stocks.is_empty() {

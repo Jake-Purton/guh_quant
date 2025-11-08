@@ -1,0 +1,15 @@
+feature,importance
+result.response.points,1.0
+portfolio.__len__,0.5831712375455677
+result.ok,0.5374676714655773
+allocated_cost,0.5031012697716941
+result.response.profit,0.4018364945770767
+alloc_budget,0.3576968040562532
+parsed_profile.budget,0.3576968040562532
+parsed_profile.excluded_sectors.__len__,0.3571245924450897
+parsed_profile.excluded_sectors.__unique_count,0.34319210567984965
+parsed_profile.start_year,0.22978967803071956
+parsed_profile.end_year,0.19421494971198675
+parsed_profile.age,0.12253611716730838
+eligible_count,0.052006530245753614
+result.response.passed,
