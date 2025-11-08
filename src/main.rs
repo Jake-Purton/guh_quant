@@ -67,7 +67,7 @@ async fn get_context() -> Result<String, Box<dyn Error>> {
             Ok(response) => return Ok(response),
             Err(e) => {
                 if attempt < 3 {
-                    eprintln!("⚠️  Network error (attempt {}): {}. Retrying...", attempt, e);
+                    eprintln!("[WARN] Network error (attempt {}): {}. Retrying...", attempt, e);
                     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                 } else {
                     return Err(e);
@@ -76,10 +76,6 @@ async fn get_context() -> Result<String, Box<dyn Error>> {
         }
     }
     Err("Failed after 3 attempts".into())
-}
-
-async fn get_my_current_information() -> Result<String, Box<dyn Error>> {
-    send_get_request("/info").await
 }
 
 async fn send_portfolio(weighted_stocks: Vec<(&str, i32)>) -> Result<String, Box<dyn Error>> {
@@ -112,27 +108,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let mut stocks = stocks_cache_clone.write().await;
             println!("⏰ Background: Updating stock prices...");
             if let Err(e) = update_stock_prices(&mut stocks).await {
-                eprintln!("⚠️  Background price update failed: {}", e);
+                eprintln!("[ERROR] Background price update failed: {}", e);
             }
         }
     });
     
-    println!("✅ Background price updater started (updates every 60s)\n");
+    println!("[INFO] Background price updater started (updates every 60s)\n");
 
     loop {
-        // Get team info
-        // match get_my_current_information().await {
-        //     Ok(info) => println!("Team information: {}", info),
-        //     Err(e) => println!("Error: {}", e),
-        // }
-    
         // Get and parse context
         let context = get_context().await?;
         println!("Context provided: {}", context);
         
         if let Ok(profile) = InvestorProfile::from_context(&context) {
 
-            println!("\n📊 Investor Profile:");
+            println!("\n[PROFILE] Investor Profile:");
             println!("  Name: {}", profile.name);
             println!("  Age: {} ({:?})", profile.age, profile.risk_tolerance);
             println!("  Budget: ${:.2}", profile.budget);
@@ -148,15 +138,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let start = format!("{}-01-01", start_year);
                 let end = format!("{}-12-31", end_year);
                 
-                println!("📊 Phase 1: Fetching historical data for ranking ({} to {})...", start, end);
+                println!("[PHASE1] Fetching historical data for ranking ({} to {})...", start, end);
                 if let Err(e) = fetch_historical_returns(&mut all_stocks, &start, &end).await {
-                    eprintln!("⚠️  Could not fetch historical returns: {}", e);
+                    eprintln!("[WARN] Could not fetch historical returns: {}", e);
                 }
             }
             
             // Filter by investor profile
             let eligible_stocks = filter_stocks_by_profile(&all_stocks, &profile);
-            println!("📋 Eligible stocks after filtering: {} (from {} total)", eligible_stocks.len(), all_stocks.len());
+            println!("[FILTER] Eligible stocks after filtering: {} (from {} total)", eligible_stocks.len(), all_stocks.len());
             
             if eligible_stocks.is_empty() {
                 return Err("No eligible stocks found!".into());
@@ -170,7 +160,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             );
             
             // Debug: Show selected stocks and their IPO info
-            println!("\n📋 Selected stocks for portfolio:");
+            println!("\n[DEBUG] Selected stocks for portfolio:");
             for (ticker, _) in &portfolio {
                 if let Some(stock) = eligible_stocks.iter().find(|s| &s.ticker == ticker) {
                     println!("  {} - IPO: {} (return: {:.1}%)", 
@@ -187,7 +177,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             // - API rate limiting
             // - Inconsistent data availability
             // Interpolated prices from Phase 1 are accurate enough (within 2-3%)
-            println!("ℹ️  Using interpolated prices from cached data (Phase 2 disabled)");
+            println!("[INFO] Using interpolated prices from cached data (Phase 2 disabled)");
             
             // Submit portfolio with interpolated prices
             print_portfolio_and_submit(&portfolio, &eligible_stocks, &profile).await?;
@@ -195,7 +185,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("error in profile skipping")
         }
     }
-
+    
+    // Unreachable: loop runs forever until externally terminated
+    #[allow(unreachable_code)]
     Ok(())
 }
 
@@ -204,7 +196,6 @@ async fn print_portfolio_and_submit(
     eligible_stocks: &[Stock],
     profile: &InvestorProfile
 ) -> Result<(), Box<dyn Error>> {
-    // println!("\n💼 Proposed Portfolio:");
     let mut total_cost = 0.0;
     for (ticker, qty) in portfolio {
         let stock = eligible_stocks.iter().find(|s| s.ticker == *ticker).unwrap();
@@ -236,8 +227,8 @@ async fn print_portfolio_and_submit(
 
     // Submit portfolio
     match send_portfolio(portfolio_refs).await {
-        Ok(response) => println!("\n✅ Evaluation: {}", response),
-        Err(e) => println!("❌ Error: {}", e),
+        Ok(response) => println!("\n[SUCCESS] Evaluation: {}", response),
+        Err(e) => println!("[ERROR] {}", e),
     }
     
     Ok(())

@@ -1,3 +1,10 @@
+//! Stock data management and historical price fetching
+//! 
+//! This module handles:
+//! - Loading stock data from cache
+//! - Fetching historical returns with interpolation
+//! - Updating current prices from Yahoo Finance API
+
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
@@ -34,14 +41,18 @@ struct StockCache {
 #[derive(Debug, Deserialize)]
 struct Metadata {
     generated_at: String,
+    #[allow(dead_code)]
     stock_count: usize,
+    #[allow(dead_code)]
     sector_keywords: HashMap<String, Vec<String>>,
+    #[allow(dead_code)]
     sectors: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 struct HistoricalData {
     start_price: f64,
+    #[allow(dead_code)]
     end_price: f64,
     return_pct: f64,
 }
@@ -60,25 +71,25 @@ impl Stock {
 }
 
 pub fn load_stocks_from_cache(cache_file: &str) -> Result<Vec<Stock>, Box<dyn Error>> {
-    println!("📂 Loading stocks from cache: {}", cache_file);
+    println!("[CACHE] Loading stocks from cache: {}", cache_file);
     
     let contents = fs::read_to_string(cache_file)
         .map_err(|e| format!("Failed to read cache file '{}': {}. Run fetch_stocks.py first!", cache_file, e))?;
     
     let cache: StockCache = serde_json::from_str(&contents)?;
     
-    println!("✅ Loaded {} stocks from cache (generated: {})", 
+    println!("[CACHE] Loaded {} stocks from cache (generated: {})", 
              cache.stocks.len(), 
              cache.metadata.generated_at);
     
     // Store historical periods in global cache
     if let Some(periods) = cache.historical_periods {
-        println!("📊 Loaded {} historical periods from cache", periods.len());
+        println!("[CACHE] Loaded {} historical periods from cache", periods.len());
         unsafe {
             HISTORICAL_PERIODS_CACHE = Some(periods);
         }
     } else {
-        println!("⚠️  No historical periods in cache - will use API fallback");
+        println!("[WARN] No historical periods in cache - will use API fallback");
     }
     
     Ok(cache.stocks)
@@ -88,12 +99,12 @@ pub async fn prefetch_all_stocks() -> Result<Vec<Stock>, Box<dyn Error>> {
     // Try to load from cache first
     match load_stocks_from_cache("stocks_cache.json") {
         Ok(stocks) => {
-            println!("📊 Using cached stock data\n");
+            println!("[CACHE] Using cached stock data\n");
             Ok(stocks)
         }
         Err(e) => {
-            println!("⚠️  Cache not found: {}", e);
-            println!("ℹ️  Run 'python3 fetch_stocks.py' to generate the cache file\n");
+            println!("[WARN] Cache not found: {}", e);
+            println!("[INFO] Run 'python3 fetch_stocks.py' to generate the cache file\n");
             Err(e)
         }
     }
@@ -140,229 +151,225 @@ pub async fn update_stock_prices(stocks: &mut [Stock]) -> Result<(), Box<dyn Err
     }
     
     if success_count > 0 {
-        println!("🔄 Updated {} stock prices ({} failed)", success_count, fail_count);
+        println!("[UPDATE] Updated {} stock prices ({} failed)", success_count, fail_count);
     }
     
     Ok(())
 }
 
+/// Parse a period key (format: "YYYY-MM-DD_YYYY-MM-DD") into start and end dates
+fn parse_period_key(period_key: &str) -> Option<(chrono::NaiveDate, chrono::NaiveDate)> {
+    let parts: Vec<&str> = period_key.split('_').collect();
+    if parts.len() != 2 {
+        return None;
+    }
+    
+    let start = chrono::NaiveDate::parse_from_str(parts[0], "%Y-%m-%d").ok()?;
+    let end = chrono::NaiveDate::parse_from_str(parts[1], "%Y-%m-%d").ok()?;
+    Some((start, end))
+}
+
 /// Find periods surrounding a target date for interpolation
+/// Returns (before_period_key, after_period_key) where before <= target < after
 fn find_surrounding_periods(target_date: &str) -> Option<(String, String)> {
     let target = chrono::NaiveDate::parse_from_str(target_date, "%Y-%m-%d").ok()?;
     
     unsafe {
-        if let Some(ref cache) = HISTORICAL_PERIODS_CACHE {
-            let mut before_period: Option<(String, chrono::NaiveDate)> = None;
-            let mut after_period: Option<(String, chrono::NaiveDate)> = None;
+        let cache = HISTORICAL_PERIODS_CACHE.as_ref()?;
+        
+        let mut before_period: Option<(String, chrono::NaiveDate)> = None;
+        let mut after_period: Option<(String, chrono::NaiveDate)> = None;
+        
+        for period_key in cache.keys() {
+            let (p_start, _p_end) = parse_period_key(period_key)?;
             
-            for period_key in cache.keys() {
-                let parts: Vec<&str> = period_key.split('_').collect();
-                if parts.len() != 2 {
-                    continue;
+            if p_start <= target {
+                // This period starts before or at target - candidate for "before"
+                if before_period.is_none() || p_start > before_period.as_ref()?.1 {
+                    before_period = Some((period_key.clone(), p_start));
                 }
-                
-                if let Ok(p_start) = chrono::NaiveDate::parse_from_str(parts[0], "%Y-%m-%d") {
-                    if p_start <= target {
-                        // This period is before or at target
-                        match before_period {
-                            Some((_, before_date)) if p_start > before_date => {
-                                before_period = Some((period_key.clone(), p_start));
-                            }
-                            None => {
-                                before_period = Some((period_key.clone(), p_start));
-                            }
-                            _ => {}
-                        }
-                    } else {
-                        // This period is after target
-                        match after_period {
-                            Some((_, after_date)) if p_start < after_date => {
-                                after_period = Some((period_key.clone(), p_start));
-                            }
-                            None => {
-                                after_period = Some((period_key.clone(), p_start));
-                            }
-                            _ => {}
-                        }
-                    }
+            } else {
+                // This period starts after target - candidate for "after"
+                if after_period.is_none() || p_start < after_period.as_ref()?.1 {
+                    after_period = Some((period_key.clone(), p_start));
                 }
             }
-            
-            if let (Some((before_key, _)), Some((after_key, _))) = (before_period, after_period) {
-                return Some((before_key, after_key));
-            }
+        }
+        
+        match (before_period, after_period) {
+            (Some((before_key, _)), Some((after_key, _))) => Some((before_key, after_key)),
+            _ => None,
         }
     }
-    
-    None
 }
 
-/// Interpolate stock price between two cached periods
+/// Linear interpolation between two values
+fn linear_interpolate(start_value: f64, end_value: f64, ratio: f64) -> f64 {
+    start_value + (end_value - start_value) * ratio
+}
+
+/// Interpolate stock price between two cached periods using linear interpolation
 fn interpolate_price(ticker: &str, target_date: &str, before_period: &str, after_period: &str) -> Option<f64> {
     let target = chrono::NaiveDate::parse_from_str(target_date, "%Y-%m-%d").ok()?;
-    
-    // Parse period dates
-    let before_parts: Vec<&str> = before_period.split('_').collect();
-    let after_parts: Vec<&str> = after_period.split('_').collect();
-    
-    let before_date = chrono::NaiveDate::parse_from_str(before_parts[0], "%Y-%m-%d").ok()?;
-    let after_date = chrono::NaiveDate::parse_from_str(after_parts[0], "%Y-%m-%d").ok()?;
+    let (before_date, _) = parse_period_key(before_period)?;
+    let (after_date, _) = parse_period_key(after_period)?;
     
     unsafe {
-        if let Some(ref cache) = HISTORICAL_PERIODS_CACHE {
-            let before_data = cache.get(before_period)?.get(ticker)?;
-            let after_data = cache.get(after_period)?.get(ticker)?;
-            
-            // Linear interpolation
-            let total_days = (after_date - before_date).num_days() as f64;
-            let target_days = (target - before_date).num_days() as f64;
-            let ratio = target_days / total_days;
-            
-            let interpolated = before_data.start_price + 
-                              (after_data.start_price - before_data.start_price) * ratio;
-            
-            Some(interpolated)
-        } else {
-            None
-        }
+        let cache = HISTORICAL_PERIODS_CACHE.as_ref()?;
+        let before_data = cache.get(before_period)?.get(ticker)?;
+        let after_data = cache.get(after_period)?.get(ticker)?;
+        
+        // Calculate interpolation ratio based on time position
+        let total_days = (after_date - before_date).num_days() as f64;
+        let target_days = (target - before_date).num_days() as f64;
+        let ratio = target_days / total_days;
+        
+        let interpolated = linear_interpolate(
+            before_data.start_price,
+            after_data.start_price,
+            ratio
+        );
+        
+        Some(interpolated)
     }
 }
 
 /// Find the best matching historical period for the given date range
+/// Priority: 1) Exact match, 2) Period containing start date, 3) Closest period to start date
 fn find_matching_period(start_date: &str, end_date: &str) -> Option<String> {
-    // Try exact match first
     let exact_key = format!("{}_{}", start_date, end_date);
+    let start = chrono::NaiveDate::parse_from_str(start_date, "%Y-%m-%d").ok()?;
+    
+    unsafe {
+        let cache = HISTORICAL_PERIODS_CACHE.as_ref()?;
+        
+        // Priority 1: Exact match
+        if cache.contains_key(&exact_key) {
+            return Some(exact_key);
+        }
+        
+        let mut best_match: Option<(String, i64)> = None;
+        
+        // Priority 2: Period containing start date, Priority 3: Closest period
+        for period_key in cache.keys() {
+            let (p_start, p_end) = parse_period_key(period_key)?;
+            
+            // Check if period contains the start date
+            if p_start <= start && p_end >= start {
+                return Some(period_key.clone());
+            }
+            
+            // Track closest period by distance to start date
+            let distance = (start - p_start).num_days().abs();
+            if best_match.is_none() || distance < best_match.as_ref()?.1 {
+                best_match = Some((period_key.clone(), distance));
+            }
+        }
+        
+        best_match.map(|(key, _)| key)
+    }
+}
+
+/// Apply cached historical data to stocks from a specific period
+fn apply_cached_period_data(stocks: &mut [Stock], period_key: &str) -> (usize, usize) {
+    let mut hits = 0;
+    let mut misses = 0;
     
     unsafe {
         if let Some(ref cache) = HISTORICAL_PERIODS_CACHE {
-            if cache.contains_key(&exact_key) {
-                return Some(exact_key);
-            }
-            
-            // Parse input dates
-            let start = chrono::NaiveDate::parse_from_str(start_date, "%Y-%m-%d").ok()?;
-            let end = chrono::NaiveDate::parse_from_str(end_date, "%Y-%m-%d").ok()?;
-            
-            // Find period that contains or is closest to the start date
-            let mut best_match: Option<(String, i64)> = None;
-            
-            for period_key in cache.keys() {
-                let parts: Vec<&str> = period_key.split('_').collect();
-                if parts.len() != 2 {
-                    continue;
-                }
-                
-                if let (Ok(p_start), Ok(p_end)) = (
-                    chrono::NaiveDate::parse_from_str(parts[0], "%Y-%m-%d"),
-                    chrono::NaiveDate::parse_from_str(parts[1], "%Y-%m-%d")
-                ) {
-                    // Calculate distance from period start to investment start
-                    let distance = (start - p_start).num_days().abs();
-                    
-                    // Prefer periods that contain or are close to the start date
-                    if p_start <= start && p_end >= start {
-                        // Period contains start date - perfect match
-                        return Some(period_key.clone());
-                    }
-                    
-                    // Otherwise, track closest period
-                    match best_match {
-                        Some((_, best_distance)) if distance < best_distance => {
-                            best_match = Some((period_key.clone(), distance));
-                        }
-                        None => {
-                            best_match = Some((period_key.clone(), distance));
-                        }
-                        _ => {}
+            if let Some(period_data) = cache.get(period_key) {
+                for stock in stocks.iter_mut() {
+                    if let Some(hist_data) = period_data.get(&stock.ticker) {
+                        stock.historical_return = Some(hist_data.return_pct);
+                        stock.historical_start_price = Some(hist_data.start_price);
+                        hits += 1;
+                    } else {
+                        misses += 1;
                     }
                 }
             }
-            
-            return best_match.map(|(key, _)| key);
         }
     }
     
-    None
+    (hits, misses)
+}
+
+/// Refine stock prices using interpolation for better accuracy
+fn apply_interpolation_refinement(stocks: &mut [Stock], start_date: &str, before_period: &str, after_period: &str) -> usize {
+    let mut refined_count = 0;
+    
+    for stock in stocks.iter_mut() {
+        if stock.historical_start_price.is_none() {
+            continue;
+        }
+        
+        if let Some(interpolated_price) = interpolate_price(&stock.ticker, start_date, before_period, after_period) {
+            // Recalculate return with more accurate interpolated start price
+            if let (Some(original_start), Some(original_return)) = (stock.historical_start_price, stock.historical_return) {
+                let end_price = original_start * (1.0 + original_return / 100.0);
+                let new_return = ((end_price - interpolated_price) / interpolated_price) * 100.0;
+                
+                stock.historical_start_price = Some(interpolated_price);
+                stock.historical_return = Some(new_return);
+                refined_count += 1;
+            }
+        }
+    }
+    
+    refined_count
+}
+
+/// Fetch historical returns from cache (Phase 1: Fast selection using cached data)
+fn fetch_from_cache(stocks: &mut [Stock], start_date: &str, end_date: &str) -> Result<bool, Box<dyn Error>> {
+    let period_key = match find_matching_period(start_date, end_date) {
+        Some(key) => key,
+        None => return Ok(false), // No cache available
+    };
+    
+    println!("[CACHE] Using cached historical period: {}", period_key);
+    
+    let (hits, misses) = apply_cached_period_data(stocks, &period_key);
+    println!("[CACHE] Loaded from cached period: {} hits, {} misses", hits, misses);
+    
+    // Try interpolation for better accuracy
+    if let Some((before_period, after_period)) = find_surrounding_periods(start_date) {
+        println!("[INTERP] Refining with interpolation between {} and {}", before_period, after_period);
+        let refined = apply_interpolation_refinement(stocks, start_date, &before_period, &after_period);
+        if refined > 0 {
+            println!("[INTERP] Interpolated {} stock prices for better accuracy", refined);
+        }
+    }
+    
+    // Success if we got data for most stocks
+    Ok(hits > misses)
 }
 
 /// Fetch historical returns for stocks during a specific date range
-/// First tries to use cached data with interpolation, falls back to API if not available
+/// First tries cached data with interpolation, falls back to API if unavailable
 pub async fn fetch_historical_returns(
     stocks: &mut [Stock], 
     start_date: &str,  // Format: YYYY-MM-DD
     end_date: &str     // Format: YYYY-MM-DD
 ) -> Result<(), Box<dyn Error>> {
-    let mut cache_hits = 0;
-    let mut interpolated_hits = 0;
-    let mut cache_misses = 0;
-    
-    // Try to use cached historical data first (exact match or close period)
-    if let Some(period_key) = find_matching_period(start_date, end_date) {
-        println!("📊 Using cached historical period: {}", period_key);
-        
-        unsafe {
-            if let Some(ref cache) = HISTORICAL_PERIODS_CACHE {
-                if let Some(period_data) = cache.get(&period_key) {
-                    for stock in stocks.iter_mut() {
-                        if let Some(hist_data) = period_data.get(&stock.ticker) {
-                            stock.historical_return = Some(hist_data.return_pct);
-                            stock.historical_start_price = Some(hist_data.start_price);
-                            cache_hits += 1;
-                        } else {
-                            cache_misses += 1;
-                        }
-                    }
-                }
-            }
-        }
-        
-        println!("✅ Loaded from nearest cached period: {} hits, {} misses", cache_hits, cache_misses);
-        
-        // Try interpolation for better accuracy if we have surrounding periods
-        if let Some((before_period, after_period)) = find_surrounding_periods(start_date) {
-            println!("📊 Refining with interpolation between {} and {}", before_period, after_period);
-            
-            for stock in stocks.iter_mut() {
-                if stock.historical_start_price.is_some() {
-                    // Try to interpolate a more accurate start price
-                    if let Some(interpolated_price) = interpolate_price(&stock.ticker, start_date, &before_period, &after_period) {
-                        // Recalculate return with interpolated start price
-                        if let Some(original_start) = stock.historical_start_price {
-                            // Estimate end price proportionally
-                            if let Some(original_return) = stock.historical_return {
-                                let end_price = original_start * (1.0 + original_return / 100.0);
-                                let new_return = ((end_price - interpolated_price) / interpolated_price) * 100.0;
-                                
-                                stock.historical_start_price = Some(interpolated_price);
-                                stock.historical_return = Some(new_return);
-                                interpolated_hits += 1;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            if interpolated_hits > 0 {
-                println!("✅ Interpolated {} stock prices for better accuracy", interpolated_hits);
-            }
-        }
-        
-        // If we got data for most stocks, we're done with Phase 1 (selection)
-        if cache_hits > cache_misses {
-            return Ok(());
-        }
+    // Try cache first
+    if fetch_from_cache(stocks, start_date, end_date)? {
+        return Ok(());
     }
     
-    // Fallback to API if cache unavailable or incomplete
-    println!("⚠️  Falling back to API for historical data...");
-    println!("⚠️  WARNING: This will be VERY SLOW (~10 seconds per stock)");
-    println!("⚠️  RECOMMENDATION: Run 'python3 fetch_stocks.py' to generate cache first!");
+    // Fallback to Yahoo Finance API (slow)
+    println!("[WARN] Falling back to API for historical data...");
+    println!("[WARN] This will be VERY SLOW (~10 seconds per stock)");
+    println!("[WARN] RECOMMENDATION: Run 'python3 fetch_stocks.py' to generate cache first!");
     
+    fetch_from_yahoo_api(stocks, start_date, end_date).await
+}
+
+/// Fetch historical data from Yahoo Finance API (fallback when cache unavailable)
+async fn fetch_from_yahoo_api(stocks: &mut [Stock], start_date: &str, end_date: &str) -> Result<(), Box<dyn Error>> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()?;
     
-    // Convert dates to Unix timestamps
     let start_timestamp = chrono::NaiveDate::parse_from_str(start_date, "%Y-%m-%d")?
         .and_hms_opt(0, 0, 0).unwrap()
         .and_utc()
@@ -373,182 +380,64 @@ pub async fn fetch_historical_returns(
         .and_utc()
         .timestamp();
     
-    let mut success_count = 0;
-    let mut fail_count = 0;
     let stocks_to_fetch: Vec<&mut Stock> = stocks.iter_mut()
         .filter(|s| s.historical_return.is_none())
         .collect();
     
-    let total_to_fetch = stocks_to_fetch.len();
-    println!("📊 Fetching data for {} stocks via API...", total_to_fetch);
+    let total = stocks_to_fetch.len();
+    println!("[API] Fetching data for {} stocks via API...", total);
+    
+    let mut success = 0;
+    let mut failed = 0;
     
     for (i, stock) in stocks_to_fetch.into_iter().enumerate() {
         if i % 10 == 0 {
-            println!("   Progress: {}/{} stocks...", i, total_to_fetch);
+            println!("   Progress: {}/{} stocks...", i, total);
         }
         
-        // Yahoo Finance historical data endpoint
         let url = format!(
             "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}&period2={}&interval=1d",
             stock.ticker, start_timestamp, end_timestamp
         );
         
-        match client.get(&url).send().await {
-            Ok(resp) => {
-                if let Ok(text) = resp.text().await {
-                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&text) {
-                        if let Some(result) = json["chart"]["result"].as_array() {
-                            if let Some(first) = result.first() {
-                                if let Some(quotes) = first["indicators"]["quote"].as_array() {
-                                    if let Some(quote_data) = quotes.first() {
-                                        if let Some(closes) = quote_data["close"].as_array() {
-                                            // Get first and last close prices
-                                            let first_close = closes.iter()
-                                                .find_map(|v| v.as_f64());
-                                            let last_close = closes.iter()
-                                                .rev()
-                                                .find_map(|v| v.as_f64());
-                                            
-                                            if let (Some(start_price), Some(end_price)) = (first_close, last_close) {
-                                                if start_price > 0.0 {
-                                                    let return_pct = ((end_price - start_price) / start_price) * 100.0;
-                                                    stock.historical_return = Some(return_pct);
-                                                    stock.historical_start_price = Some(start_price);
-                                                    success_count += 1;
-                                                    continue;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+        if let Ok(resp) = client.get(&url).send().await {
+            if let Ok(text) = resp.text().await {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&text) {
+                    if let Some(closes) = extract_close_prices(&json) {
+                        if let (Some(start_price), Some(end_price)) = (closes.first(), closes.last()) {
+                            if *start_price > 0.0 {
+                                let return_pct = ((end_price - start_price) / start_price) * 100.0;
+                                stock.historical_return = Some(return_pct);
+                                stock.historical_start_price = Some(*start_price);
+                                success += 1;
+                                continue;
                             }
                         }
                     }
                 }
-                fail_count += 1;
-            }
-            Err(_) => {
-                fail_count += 1;
             }
         }
         
-        // Small delay to avoid rate limiting
-        if success_count % 10 == 0 {
+        failed += 1;
+        
+        // Rate limiting
+        if success % 10 == 0 {
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
         }
     }
     
-    println!("📈 Fetched historical returns from API: {} success, {} failed", success_count, fail_count);
-    
+    println!("[API] Fetch complete: {} success, {} failed", success, failed);
     Ok(())
 }
 
-/// Fetch exact historical prices for specific stocks (Phase 2: after selection)
-/// This is called only for the stocks chosen for the portfolio to get precise pricing
-pub async fn fetch_exact_prices_for_selected(
-    stocks: &mut [Stock],
-    start_date: &str,
-    end_date: &str
-) -> Result<(), Box<dyn Error>> {
-    println!("💎 Fetching exact historical prices for {} selected stocks...", stocks.len());
+/// Extract close prices from Yahoo Finance API response
+fn extract_close_prices(json: &serde_json::Value) -> Option<Vec<f64>> {
+    let result = json["chart"]["result"].as_array()?.first()?;
+    let quotes = result["indicators"]["quote"].as_array()?.first()?;
+    let closes = quotes["close"].as_array()?;
     
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(10))
-        .build()?;
-    
-    // Convert dates to Unix timestamps
-    let start_timestamp = chrono::NaiveDate::parse_from_str(start_date, "%Y-%m-%d")?
-        .and_hms_opt(0, 0, 0).unwrap()
-        .and_utc()
-        .timestamp();
-    
-    let end_timestamp = chrono::NaiveDate::parse_from_str(end_date, "%Y-%m-%d")?
-        .and_hms_opt(0, 0, 0).unwrap()
-        .and_utc()
-        .timestamp();
-    
-    let mut success_count = 0;
-    let mut fail_count = 0;
-    
-    for stock in stocks.iter_mut() {
-        let url = format!(
-            "https://query1.finance.yahoo.com/v8/finance/chart/{}?period1={}&period2={}&interval=1d",
-            stock.ticker, start_timestamp, end_timestamp
-        );
-        
-        match client.get(&url).send().await {
-            Ok(resp) => {
-                if let Ok(text) = resp.text().await {
-                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&text) {
-                        // Check for API error message
-                        if let Some(error) = json["chart"]["error"].as_object() {
-                            if let Some(description) = error["description"].as_str() {
-                                fail_count += 1;
-                                println!("  ✗ {}: Yahoo API error: {}", stock.ticker, description);
-                                continue;
-                            }
-                        }
-                        
-                        if let Some(result) = json["chart"]["result"].as_array() {
-                            if result.is_empty() {
-                                fail_count += 1;
-                                println!("  ✗ {}: No data returned (possibly didn't exist in {} or delisted)", 
-                                        stock.ticker, start_date.split('-').next().unwrap_or(""));
-                                continue;
-                            }
-                            
-                            if let Some(first) = result.first() {
-                                if let Some(quotes) = first["indicators"]["quote"].as_array() {
-                                    if let Some(quote_data) = quotes.first() {
-                                        if let Some(closes) = quote_data["close"].as_array() {
-                                            if closes.is_empty() {
-                                                fail_count += 1;
-                                                println!("  ✗ {}: No price data for this period", stock.ticker);
-                                                continue;
-                                            }
-                                            
-                                            let first_close = closes.iter()
-                                                .find_map(|v| v.as_f64());
-                                            let last_close = closes.iter()
-                                                .rev()
-                                                .find_map(|v| v.as_f64());
-                                            
-                                            if let (Some(start_price), Some(end_price)) = (first_close, last_close) {
-                                                if start_price > 0.0 {
-                                                    let return_pct = ((end_price - start_price) / start_price) * 100.0;
-                                                    stock.historical_return = Some(return_pct);
-                                                    stock.historical_start_price = Some(start_price);
-                                                    success_count += 1;
-                                                    println!("  ✓ {}: ${:.2} → ${:.2} ({:+.1}%)", 
-                                                            stock.ticker, start_price, end_price, return_pct);
-                                                    continue;
-                                                }
-                                            } else {
-                                                fail_count += 1;
-                                                println!("  ✗ {}: Could not parse price data", stock.ticker);
-                                                continue;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                fail_count += 1;
-                println!("  ✗ {}: Failed to parse response", stock.ticker);
-            }
-            Err(e) => {
-                fail_count += 1;
-                println!("  ✗ {}: Network error: {}", stock.ticker, e);
-            }
-        }
-        
-        // Rate limiting
-        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
-    }
-    
-    println!("✅ Exact prices: {} success, {} failed\n", success_count, fail_count);
-    
-    Ok(())
+    closes.iter()
+        .filter_map(|v| v.as_f64())
+        .collect::<Vec<f64>>()
+        .into()
 }

@@ -149,18 +149,6 @@ impl InvestorProfile {
         sectors
     }
 
-    pub fn stock_allocation_pct(&self) -> f64 {
-        match self.risk_tolerance {
-            RiskLevel::Conservative => 0.25,
-            RiskLevel::Moderate => 0.65,
-            RiskLevel::Aggressive => 0.85,
-        }
-    }
-
-    pub fn stock_budget(&self) -> f64 {
-        self.budget * self.stock_allocation_pct()
-    }
-
     pub fn should_exclude_sector(&self, sector: &str) -> bool {
         self.excluded_sectors
             .iter()

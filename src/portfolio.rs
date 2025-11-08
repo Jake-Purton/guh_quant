@@ -1,6 +1,8 @@
 use crate::investor::{InvestorProfile, RiskLevel};
 use crate::stocks::Stock;
 
+/// Get the first trading year for a ticker from hardcoded database
+/// This is used as a fallback when cache data is unavailable
 fn get_first_trading_year(ticker: &str) -> Option<u32> {
     // Hardcoded first trading years for stocks that frequently cause issues
     // or don't have data in cache yet
@@ -56,48 +58,61 @@ fn get_first_trading_year(ticker: &str) -> Option<u32> {
         .map(|(_, year)| *year)
 }
 
+/// Tickers that are excluded due to API issues or data quality problems
+const EXCLUDED_TICKERS: &[&str] = &["MTCH", "TFC", "ELV", "EA", "ES", "MDLZ", "NEE", "ZBH"];
+
+/// Check if ticker should be excluded
+fn is_ticker_excluded(ticker: &str) -> bool {
+    // Filter out tickers with hyphens (API issues)
+    if ticker.contains('-') {
+        return true;
+    }
+    
+    // Filter out manually excluded tickers
+    EXCLUDED_TICKERS.contains(&ticker)
+}
+
+/// Check if stock volatility matches risk tolerance
+fn matches_risk_tolerance(volatility: f64, risk_level: RiskLevel) -> bool {
+    match risk_level {
+        RiskLevel::Conservative => volatility < 0.03, // Low volatility only
+        RiskLevel::Moderate => volatility < 0.05,     // Medium volatility
+        RiskLevel::Aggressive => true,                // All stocks acceptable
+    }
+}
+
+/// Check if stock was trading during the investment period
+fn was_trading_during_period(stock: &Stock, start_year: Option<u32>) -> bool {
+    let Some(required_start_year) = start_year else {
+        return true; // No date restriction
+    };
+    
+    // Try cache first (format: YYYY-MM-DD)
+    if let Some(first_date) = &stock.first_trading_date {
+        if let Some(year_str) = first_date.split('-').next() {
+            if let Ok(first_year) = year_str.parse::<u32>() {
+                return first_year <= required_start_year;
+            }
+        }
+    }
+    
+    // Fallback to hardcoded database
+    if let Some(first_year) = get_first_trading_year(&stock.ticker) {
+        return first_year <= required_start_year;
+    }
+    
+    // Conservative: exclude if we have no trading date info
+    false
+}
+
+/// Filter stocks based on investor profile requirements
 pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> Vec<Stock> {
     stocks
         .iter()
-        .filter(|s| {
-            // Filter out tickers with hyphens - they often cause API issues
-            // Also filter out specific problematic tickers
-            !s.ticker.contains('-') && s.ticker != "MTCH" && s.ticker != "TFC" && s.ticker != "ELV" && s.ticker != "EA" && s.ticker != "ES"&& s.ticker != "MDLZ"&& s.ticker != "NEE"&& s.ticker != "ZBH"
-        })
+        .filter(|s| !is_ticker_excluded(&s.ticker))
         .filter(|s| !profile.should_exclude_sector(&s.sector))
-        .filter(|s| {
-            // Filter by risk tolerance
-            match profile.risk_tolerance {
-                RiskLevel::Conservative => s.volatility < 0.03, // Low volatility only
-                RiskLevel::Moderate => s.volatility < 0.05,     // Medium volatility
-                RiskLevel::Aggressive => true,                   // All stocks ok
-            }
-        })
-        .filter(|s| {
-            // Filter by trading date - stock must have been trading during entire investment period
-            if let Some(start_year) = profile.start_year {
-                // Try cache first
-                if let Some(first_date) = &s.first_trading_date {
-                    // Extract year from first_trading_date (format: YYYY-MM-DD)
-                    if let Some(first_year_str) = first_date.split('-').next() {
-                        if let Ok(first_year) = first_year_str.parse::<u32>() {
-                            // Stock must have started trading before or at start of investment period
-                            return first_year <= start_year;
-                        }
-                    }
-                }
-                
-                // Fallback to hardcoded database
-                if let Some(first_year) = get_first_trading_year(&s.ticker) {
-                    return first_year <= start_year;
-                }
-                
-                // If we have start year but no trading date info at all, be conservative and exclude
-                false
-            } else {
-                true // If no investment date info, include it
-            }
-        })
+        .filter(|s| matches_risk_tolerance(s.volatility, profile.risk_tolerance))
+        .filter(|s| was_trading_during_period(s, profile.start_year))
         .cloned()
         .collect()
 }
@@ -132,36 +147,43 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
     }
     
     // Performance-weighted allocation for larger budgets
-    let num_positions = target_positions.min(sorted_stocks.len());
-    let top_stocks: Vec<&Stock> = sorted_stocks.iter().take(num_positions).collect();
+    build_weighted_portfolio(&sorted_stocks, budget, target_positions)
+}
+
+/// Calculate performance-based weights for stocks
+fn calculate_performance_weights(stocks: &[&Stock]) -> Vec<f64> {
+    let weights: Vec<f64> = stocks
+        .iter()
+        .map(|stock| {
+            let return_pct = stock.historical_return.unwrap_or(0.0);
+            if return_pct > 0.0 { return_pct } else { 1.0 } // Min weight for negative returns
+        })
+        .collect();
     
-    // Calculate weights based on historical returns (if available)
-    let mut weights: Vec<f64> = Vec::new();
-    let mut total_weight = 0.0;
+    let total: f64 = weights.iter().sum();
     
-    for stock in &top_stocks {
-        // Convert return % to weight (normalize negative returns to 0)
-        let return_pct = stock.historical_return.unwrap_or(0.0);
-        let weight = if return_pct > 0.0 {
-            return_pct  // Use actual return as weight
-        } else {
-            1.0  // Minimum weight for negative/zero returns
-        };
-        weights.push(weight);
-        total_weight += weight;
+    // Normalize to sum to 1.0
+    if total > 0.0 {
+        weights.iter().map(|w| w / total).collect()
+    } else {
+        vec![1.0 / stocks.len() as f64; stocks.len()] // Equal weights fallback
+    }
+}
+
+/// Build portfolio with performance-weighted allocation
+fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usize) -> Vec<(String, i32)> {
+    let num_positions = target_positions.min(stocks.len());
+    let top_stocks: Vec<&Stock> = stocks.iter().take(num_positions).collect();
+    
+    if top_stocks.is_empty() {
+        return Vec::new();
     }
     
-    // Normalize weights to sum to 1.0
-    if total_weight > 0.0 {
-        for w in weights.iter_mut() {
-            *w /= total_weight;
-        }
-    }
-    
-    // Allocate budget proportionally by weight
+    let weights = calculate_performance_weights(&top_stocks);
     let mut portfolio = Vec::new();
-    let mut allocated_budget = 0.0;
+    let mut allocated = 0.0;
     
+    // Allocate budget proportionally to each stock
     for (i, stock) in top_stocks.iter().enumerate() {
         let purchase_price = stock.get_purchase_price();
         let target_allocation = budget * weights[i];
@@ -169,28 +191,33 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
         
         if quantity > 0 {
             portfolio.push((stock.ticker.clone(), quantity));
-            allocated_budget += (quantity as f64) * purchase_price;
+            allocated += (quantity as f64) * purchase_price;
         }
     }
     
-    // Use remaining budget to buy more of the top performer
-    let remaining = budget - allocated_budget;
-    if remaining > 0.0 && !top_stocks.is_empty() {
-        let top_stock = top_stocks[0];
-        let top_price = top_stock.get_purchase_price();
-        let extra_qty = (remaining / top_price).floor() as i32;
-        
-        if extra_qty > 0 {
-            // Add to existing position or create new one
-            if let Some(pos) = portfolio.iter_mut().find(|(t, _)| t == &top_stock.ticker) {
-                pos.1 += extra_qty;
-            } else {
-                portfolio.push((top_stock.ticker.clone(), extra_qty));
-            }
-        }
-    }
+    // Deploy remaining budget into top performer
+    deploy_remaining_budget(&mut portfolio, budget - allocated, top_stocks[0]);
     
     portfolio
+}
+
+/// Deploy remaining budget into the best performing stock
+fn deploy_remaining_budget(portfolio: &mut Vec<(String, i32)>, remaining: f64, top_stock: &Stock) {
+    if remaining <= 0.0 {
+        return;
+    }
+    
+    let price = top_stock.get_purchase_price();
+    let extra_qty = (remaining / price).floor() as i32;
+    
+    if extra_qty > 0 {
+        // Add to existing position or create new one
+        if let Some(pos) = portfolio.iter_mut().find(|(t, _)| t == &top_stock.ticker) {
+            pos.1 += extra_qty;
+        } else {
+            portfolio.push((top_stock.ticker.clone(), extra_qty));
+        }
+    }
 }
 
 fn build_greedy_portfolio(stocks: &[Stock], budget: f64) -> Vec<(String, i32)> {
