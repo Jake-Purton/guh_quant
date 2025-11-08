@@ -1,0 +1,1982 @@
+{
+  "metadata": {
+    "generated_at": "2025-11-08T13:23:58.442446",
+    "stock_count": 235,
+    "sector_keywords": {
+      "Technology": [
+        "tech",
+        "technology",
+        "software",
+        "hardware",
+        "semiconductor",
+        "ai",
+        "cloud"
+      ],
+      "Healthcare": [
+        "healthcare",
+        "health",
+        "pharmaceutical",
+        "biotech",
+        "medical",
+        "drug"
+      ],
+      "Financials": [
+        "financial",
+        "finance",
+        "bank",
+        "banking",
+        "insurance",
+        "investment"
+      ],
+      "Energy": [
+        "energy",
+        "oil",
+        "gas",
+        "petroleum",
+        "renewable"
+      ],
+      "Consumer": [
+        "consumer",
+        "retail",
+        "e-commerce",
+        "restaurant",
+        "food",
+        "beverage"
+      ],
+      "Industrials": [
+        "industrial",
+        "manufacturing",
+        "construction",
+        "aerospace",
+        "defense"
+      ],
+      "Real Estate": [
+        "real estate",
+        "reit",
+        "property",
+        "housing"
+      ],
+      "Utilities": [
+        "utility",
+        "utilities",
+        "electric",
+        "water",
+        "power"
+      ],
+      "Materials": [
+        "materials",
+        "mining",
+        "metals",
+        "chemicals"
+      ],
+      "Communication": [
+        "communication",
+        "telecom",
+        "media",
+        "entertainment"
+      ],
+      "Crypto": [
+        "crypto",
+        "cryptocurrency",
+        "bitcoin",
+        "blockchain",
+        "crypto assets"
+      ]
+    },
+    "sectors": [
+      "Technology",
+      "Healthcare",
+      "Financials",
+      "Energy",
+      "Consumer",
+      "Industrials",
+      "Real Estate",
+      "Utilities",
+      "Materials",
+      "Communication",
+      "Crypto"
+    ]
+  },
+  "stocks": [
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA Corporation",
+      "price": 188.15,
+      "sector": "Technology",
+      "market_cap": 4580888281088,
+      "volatility": 0.0264
+    },
+    {
+      "ticker": "AAPL",
+      "name": "Apple Inc.",
+      "price": 268.47,
+      "sector": "Technology",
+      "market_cap": 3967007326208,
+      "volatility": 0.0148
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft Corporation",
+      "price": 496.82,
+      "sector": "Technology",
+      "market_cap": 3692554092544,
+      "volatility": 0.0117
+    },
+    {
+      "ticker": "GOOG",
+      "name": "Alphabet Inc.",
+      "price": 279.7,
+      "sector": "Communication",
+      "market_cap": 3369345744896,
+      "volatility": 0.0179
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet Inc.",
+      "price": 278.83,
+      "sector": "Communication",
+      "market_cap": 3369345482752,
+      "volatility": 0.0185
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon.com, Inc.",
+      "price": 244.41,
+      "sector": "Consumer",
+      "market_cap": 2612795801600,
+      "volatility": 0.0292
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom Inc.",
+      "price": 349.43,
+      "sector": "Technology",
+      "market_cap": 1650135924736,
+      "volatility": 0.0324
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms, Inc.",
+      "price": 621.71,
+      "sector": "Communication",
+      "market_cap": 1567037325312,
+      "volatility": 0.0289
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla, Inc.",
+      "price": 429.52,
+      "sector": "Consumer",
+      "market_cap": 1428505755648,
+      "volatility": 0.0325
+    },
+    {
+      "ticker": "BRK-B",
+      "name": "Berkshire Hathaway Inc.",
+      "price": 499.06,
+      "sector": "Financials",
+      "market_cap": 1076732231680,
+      "volatility": 0.0099
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan Chase & Co.",
+      "price": 314.21,
+      "sector": "Financials",
+      "market_cap": 855361978368,
+      "volatility": 0.0127
+    },
+    {
+      "ticker": "LLY",
+      "name": "Eli Lilly and Company",
+      "price": 924.37,
+      "sector": "Healthcare",
+      "market_cap": 828657762304,
+      "volatility": 0.0178
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart Inc.",
+      "price": 102.59,
+      "sector": "Consumer",
+      "market_cap": 817934761984,
+      "volatility": 0.0148
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle Corporation",
+      "price": 239.26,
+      "sector": "Technology",
+      "market_cap": 682080665600,
+      "volatility": 0.0315
+    },
+    {
+      "ticker": "V",
+      "name": "Visa Inc.",
+      "price": 336.02,
+      "sector": "Financials",
+      "market_cap": 648484028416,
+      "volatility": 0.0114
+    },
+    {
+      "ticker": "MA",
+      "name": "Mastercard Incorporated",
+      "price": 551.97,
+      "sector": "Financials",
+      "market_cap": 495666724864,
+      "volatility": 0.0118
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil Corporation",
+      "price": 117.22,
+      "sector": "Energy",
+      "market_cap": 494316748800,
+      "volatility": 0.011
+    },
+    {
+      "ticker": "NFLX",
+      "name": "Netflix, Inc.",
+      "price": 1103.66,
+      "sector": "Communication",
+      "market_cap": 467656441856,
+      "volatility": 0.0251
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "price": 186.57,
+      "sector": "Healthcare",
+      "market_cap": 449502216192,
+      "volatility": 0.0072
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Palantir Technologies Inc.",
+      "price": 177.93,
+      "sector": "Technology",
+      "market_cap": 424084799488,
+      "volatility": 0.0332
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco Wholesale Corporation",
+      "price": 922.74,
+      "sector": "Consumer",
+      "market_cap": 408939134976,
+      "volatility": 0.0132
+    },
+    {
+      "ticker": "BAC",
+      "name": "Bank of America Corporation",
+      "price": 53.2,
+      "sector": "Financials",
+      "market_cap": 388492787712,
+      "volatility": 0.0171
+    },
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie Inc.",
+      "price": 219.16,
+      "sector": "Healthcare",
+      "market_cap": 387340009472,
+      "volatility": 0.0137
+    },
+    {
+      "ticker": "AMD",
+      "name": "Advanced Micro Devices, Inc.",
+      "price": 233.54,
+      "sector": "Technology",
+      "market_cap": 380212838400,
+      "volatility": 0.0404
+    },
+    {
+      "ticker": "HD",
+      "name": "The Home Depot, Inc.",
+      "price": 371.11,
+      "sector": "Consumer",
+      "market_cap": 369397923840,
+      "volatility": 0.011
+    },
+    {
+      "ticker": "PG",
+      "name": "The Procter & Gamble Company",
+      "price": 146.98,
+      "sector": "Consumer",
+      "market_cap": 343453073408,
+      "volatility": 0.0092
+    },
+    {
+      "ticker": "GE",
+      "name": "GE Aerospace",
+      "price": 307.27,
+      "sector": "Industrials",
+      "market_cap": 324112646144,
+      "volatility": 0.0152
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron Corporation",
+      "price": 155.02,
+      "sector": "Energy",
+      "market_cap": 309939798016,
+      "volatility": 0.0121
+    },
+    {
+      "ticker": "KO",
+      "name": "The Coca-Cola Company",
+      "price": 70.55,
+      "sector": "Consumer",
+      "market_cap": 303478538240,
+      "volatility": 0.0133
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth Group Incorporated",
+      "price": 324.21,
+      "sector": "Healthcare",
+      "market_cap": 293681922048,
+      "volatility": 0.0153
+    },
+    {
+      "ticker": "IBM",
+      "name": "International Business Machines Corporation",
+      "price": 306.38,
+      "sector": "Technology",
+      "market_cap": 286384193536,
+      "volatility": 0.0227
+    },
+    {
+      "ticker": "CSCO",
+      "name": "Cisco Systems, Inc.",
+      "price": 71.07,
+      "sector": "Technology",
+      "market_cap": 280067309568,
+      "volatility": 0.0144
+    },
+    {
+      "ticker": "WFC",
+      "name": "Wells Fargo & Company",
+      "price": 86.04,
+      "sector": "Financials",
+      "market_cap": 270086832128,
+      "volatility": 0.0215
+    },
+    {
+      "ticker": "MU",
+      "name": "Micron Technology, Inc.",
+      "price": 237.92,
+      "sector": "Technology",
+      "market_cap": 267057119232,
+      "volatility": 0.0394
+    },
+    {
+      "ticker": "CAT",
+      "name": "Caterpillar Inc.",
+      "price": 563.1,
+      "sector": "Industrials",
+      "market_cap": 263800471552,
+      "volatility": 0.0319
+    },
+    {
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "price": 162.36,
+      "sector": "Financials",
+      "market_cap": 258040266752,
+      "volatility": 0.0167
+    },
+    {
+      "ticker": "AXP",
+      "name": "American Express Company",
+      "price": 368.54,
+      "sector": "Financials",
+      "market_cap": 253869391872,
+      "volatility": 0.0195
+    },
+    {
+      "ticker": "PM",
+      "name": "Philip Morris International Inc.",
+      "price": 153.39,
+      "sector": "Consumer",
+      "market_cap": 238772813824,
+      "volatility": 0.0176
+    },
+    {
+      "ticker": "RTX",
+      "name": "RTX Corporation",
+      "price": 176.97,
+      "sector": "Industrials",
+      "market_cap": 237276413952,
+      "volatility": 0.022
+    },
+    {
+      "ticker": "GS",
+      "name": "The Goldman Sachs Group, Inc.",
+      "price": 786.34,
+      "sector": "Financials",
+      "market_cap": 235845795840,
+      "volatility": 0.0155
+    },
+    {
+      "ticker": "TMUS",
+      "name": "T-Mobile US, Inc.",
+      "price": 207.0,
+      "sector": "Communication",
+      "market_cap": 231530872832,
+      "volatility": 0.0164
+    },
+    {
+      "ticker": "CRM",
+      "name": "Salesforce, Inc.",
+      "price": 239.88,
+      "sector": "Technology",
+      "market_cap": 228365762560,
+      "volatility": 0.0251
+    },
+    {
+      "ticker": "ABT",
+      "name": "Abbott Laboratories",
+      "price": 126.36,
+      "sector": "Healthcare",
+      "market_cap": 219723857920,
+      "volatility": 0.0108
+    },
+    {
+      "ticker": "TMO",
+      "name": "Thermo Fisher Scientific Inc.",
+      "price": 572.41,
+      "sector": "Healthcare",
+      "market_cap": 215059038208,
+      "volatility": 0.0109
+    },
+    {
+      "ticker": "MRK",
+      "name": "Merck & Co., Inc.",
+      "price": 86.28,
+      "sector": "Healthcare",
+      "market_cap": 214148907008,
+      "volatility": 0.0135
+    },
+    {
+      "ticker": "MCD",
+      "name": "McDonald's Corporation",
+      "price": 299.66,
+      "sector": "Consumer",
+      "market_cap": 213404188672,
+      "volatility": 0.0111
+    },
+    {
+      "ticker": "LRCX",
+      "name": "Lam Research Corporation",
+      "price": 159.35,
+      "sector": "Technology",
+      "market_cap": 200148385792,
+      "volatility": 0.032
+    },
+    {
+      "ticker": "DIS",
+      "name": "The Walt Disney Company",
+      "price": 110.74,
+      "sector": "Communication",
+      "market_cap": 199103184896,
+      "volatility": 0.0104
+    },
+    {
+      "ticker": "ISRG",
+      "name": "Intuitive Surgical, Inc.",
+      "price": 560.0,
+      "sector": "Healthcare",
+      "market_cap": 198517800960,
+      "volatility": 0.0337
+    },
+    {
+      "ticker": "SHOP",
+      "name": "Shopify Inc.",
+      "price": 152.41,
+      "sector": "Technology",
+      "market_cap": 197598609408,
+      "volatility": 0.031
+    },
+    {
+      "ticker": "LIN",
+      "name": "Linde plc",
+      "price": 420.51,
+      "sector": "Materials",
+      "market_cap": 196356702208,
+      "volatility": 0.0118
+    },
+    {
+      "ticker": "PEP",
+      "name": "PepsiCo, Inc.",
+      "price": 142.95,
+      "sector": "Consumer",
+      "market_cap": 195461267456,
+      "volatility": 0.0161
+    },
+    {
+      "ticker": "UBER",
+      "name": "Uber Technologies, Inc.",
+      "price": 91.99,
+      "sector": "Technology",
+      "market_cap": 191139610624,
+      "volatility": 0.0197
+    },
+    {
+      "ticker": "AMAT",
+      "name": "Applied Materials, Inc.",
+      "price": 230.07,
+      "sector": "Technology",
+      "market_cap": 183283531776,
+      "volatility": 0.0267
+    },
+    {
+      "ticker": "QCOM",
+      "name": "QUALCOMM Incorporated",
+      "price": 170.89,
+      "sector": "Technology",
+      "market_cap": 183023190016,
+      "volatility": 0.0367
+    },
+    {
+      "ticker": "INTC",
+      "name": "Intel Corporation",
+      "price": 38.13,
+      "sector": "Technology",
+      "market_cap": 181880094720,
+      "volatility": 0.0309
+    },
+    {
+      "ticker": "INTU",
+      "name": "Intuit Inc.",
+      "price": 648.85,
+      "sector": "Technology",
+      "market_cap": 180902608896,
+      "volatility": 0.0142
+    },
+    {
+      "ticker": "C",
+      "name": "Citigroup Inc.",
+      "price": 100.79,
+      "sector": "Financials",
+      "market_cap": 180340146176,
+      "volatility": 0.0179
+    },
+    {
+      "ticker": "BX",
+      "name": "Blackstone Inc.",
+      "price": 145.94,
+      "sector": "Financials",
+      "market_cap": 179550453760,
+      "volatility": 0.0206
+    },
+    {
+      "ticker": "NOW",
+      "name": "ServiceNow, Inc.",
+      "price": 861.87,
+      "sector": "Technology",
+      "market_cap": 179399114752,
+      "volatility": 0.019
+    },
+    {
+      "ticker": "T",
+      "name": "AT&T Inc.",
+      "price": 24.83,
+      "sector": "Communication",
+      "market_cap": 176031023104,
+      "volatility": 0.0139
+    },
+    {
+      "ticker": "NEE",
+      "name": "NextEra Energy, Inc.",
+      "price": 83.93,
+      "sector": "Utilities",
+      "market_cap": 174793424896,
+      "volatility": 0.0124
+    },
+    {
+      "ticker": "SCHW",
+      "name": "The Charles Schwab Corporation",
+      "price": 95.24,
+      "sector": "Financials",
+      "market_cap": 172881477632,
+      "volatility": 0.0092
+    },
+    {
+      "ticker": "AMGN",
+      "name": "Amgen Inc.",
+      "price": 320.2,
+      "sector": "Healthcare",
+      "market_cap": 172421513216,
+      "volatility": 0.0196
+    },
+    {
+      "ticker": "VZ",
+      "name": "Verizon Communications Inc.",
+      "price": 40.03,
+      "sector": "Communication",
+      "market_cap": 168783511552,
+      "volatility": 0.0147
+    },
+    {
+      "ticker": "BLK",
+      "name": "BlackRock, Inc.",
+      "price": 1082.2,
+      "sector": "Financials",
+      "market_cap": 167904313344,
+      "volatility": 0.0157
+    },
+    {
+      "ticker": "TJX",
+      "name": "The TJX Companies, Inc.",
+      "price": 144.61,
+      "sector": "Consumer",
+      "market_cap": 160942080000,
+      "volatility": 0.0104
+    },
+    {
+      "ticker": "BKNG",
+      "name": "Booking Holdings Inc.",
+      "price": 4940.0,
+      "sector": "Consumer",
+      "market_cap": 159235047424,
+      "volatility": 0.0177
+    },
+    {
+      "ticker": "KLAC",
+      "name": "KLA Corporation",
+      "price": 1193.37,
+      "sector": "Technology",
+      "market_cap": 156799664128,
+      "volatility": 0.0289
+    },
+    {
+      "ticker": "ACN",
+      "name": "Accenture plc",
+      "price": 245.76,
+      "sector": "Technology",
+      "market_cap": 152405327872,
+      "volatility": 0.019
+    },
+    {
+      "ticker": "SPGI",
+      "name": "S&P Global Inc.",
+      "price": 496.42,
+      "sector": "Financials",
+      "market_cap": 150315974656,
+      "volatility": 0.017
+    },
+    {
+      "ticker": "DHR",
+      "name": "Danaher Corporation",
+      "price": 209.94,
+      "sector": "Healthcare",
+      "market_cap": 148291026944,
+      "volatility": 0.0167
+    },
+    {
+      "ticker": "BSX",
+      "name": "Boston Scientific Corporation",
+      "price": 100.02,
+      "sector": "Healthcare",
+      "market_cap": 148273840128,
+      "volatility": 0.014
+    },
+    {
+      "ticker": "BA",
+      "name": "The Boeing Company",
+      "price": 194.61,
+      "sector": "Industrials",
+      "market_cap": 147922190336,
+      "volatility": 0.022
+    },
+    {
+      "ticker": "GILD",
+      "name": "Gilead Sciences, Inc.",
+      "price": 118.84,
+      "sector": "Healthcare",
+      "market_cap": 147599278080,
+      "volatility": 0.0155
+    },
+    {
+      "ticker": "TXN",
+      "name": "Texas Instruments Incorporated",
+      "price": 160.55,
+      "sector": "Technology",
+      "market_cap": 145879433216,
+      "volatility": 0.0205
+    },
+    {
+      "ticker": "ETN",
+      "name": "Eaton Corporation plc",
+      "price": 373.77,
+      "sector": "Industrials",
+      "market_cap": 145172267008,
+      "volatility": 0.0183
+    },
+    {
+      "ticker": "PANW",
+      "name": "Palo Alto Networks, Inc.",
+      "price": 212.29,
+      "sector": "Technology",
+      "market_cap": 143689547776,
+      "volatility": 0.0149
+    },
+    {
+      "ticker": "PFE",
+      "name": "Pfizer Inc.",
+      "price": 24.43,
+      "sector": "Healthcare",
+      "market_cap": 138901848064,
+      "volatility": 0.0095
+    },
+    {
+      "ticker": "COF",
+      "name": "Capital One Financial Corporation",
+      "price": 217.82,
+      "sector": "Financials",
+      "market_cap": 138475503616,
+      "volatility": 0.0217
+    },
+    {
+      "ticker": "ADBE",
+      "name": "Adobe Inc.",
+      "price": 326.95,
+      "sector": "Technology",
+      "market_cap": 136861278208,
+      "volatility": 0.0202
+    },
+    {
+      "ticker": "SYK",
+      "name": "Stryker Corporation",
+      "price": 356.03,
+      "sector": "Healthcare",
+      "market_cap": 136154292224,
+      "volatility": 0.0141
+    },
+    {
+      "ticker": "CRWD",
+      "name": "CrowdStrike Holdings, Inc.",
+      "price": 539.81,
+      "sector": "Technology",
+      "market_cap": 135468089344,
+      "volatility": 0.0216
+    },
+    {
+      "ticker": "UNP",
+      "name": "Union Pacific Corporation",
+      "price": 221.48,
+      "sector": "Industrials",
+      "market_cap": 131373268992,
+      "volatility": 0.0111
+    },
+    {
+      "ticker": "LOW",
+      "name": "Lowe's Companies, Inc.",
+      "price": 233.16,
+      "sector": "Consumer",
+      "market_cap": 130761932800,
+      "volatility": 0.0113
+    },
+    {
+      "ticker": "WELL",
+      "name": "Welltower Inc.",
+      "price": 190.25,
+      "sector": "Real Estate",
+      "market_cap": 130573918208,
+      "volatility": 0.0123
+    },
+    {
+      "ticker": "PGR",
+      "name": "The Progressive Corporation",
+      "price": 217.27,
+      "sector": "Financials",
+      "market_cap": 127406530560,
+      "volatility": 0.0201
+    },
+    {
+      "ticker": "DE",
+      "name": "Deere & Company",
+      "price": 467.79,
+      "sector": "Industrials",
+      "market_cap": 126457397248,
+      "volatility": 0.0132
+    },
+    {
+      "ticker": "HON",
+      "name": "Honeywell International Inc.",
+      "price": 194.07,
+      "sector": "Industrials",
+      "market_cap": 123212570624,
+      "volatility": 0.0207
+    },
+    {
+      "ticker": "MDT",
+      "name": "Medtronic plc",
+      "price": 92.2,
+      "sector": "Healthcare",
+      "market_cap": 118257197056,
+      "volatility": 0.0095
+    },
+    {
+      "ticker": "PLD",
+      "name": "Prologis, Inc.",
+      "price": 125.6,
+      "sector": "Real Estate",
+      "market_cap": 116665696256,
+      "volatility": 0.019
+    },
+    {
+      "ticker": "CB",
+      "name": "Chubb Limited",
+      "price": 287.55,
+      "sector": "Financials",
+      "market_cap": 113165541376,
+      "volatility": 0.0153
+    },
+    {
+      "ticker": "ADI",
+      "name": "Analog Devices, Inc.",
+      "price": 228.48,
+      "sector": "Technology",
+      "market_cap": 112401973248,
+      "volatility": 0.0207
+    },
+    {
+      "ticker": "KKR",
+      "name": "KKR & Co. Inc.",
+      "price": 121.32,
+      "sector": "Financials",
+      "market_cap": 112286343168,
+      "volatility": 0.023
+    },
+    {
+      "ticker": "HCA",
+      "name": "HCA Healthcare, Inc.",
+      "price": 476.61,
+      "sector": "Healthcare",
+      "market_cap": 108759490560,
+      "volatility": 0.0148
+    },
+    {
+      "ticker": "COP",
+      "name": "ConocoPhillips",
+      "price": 86.83,
+      "sector": "Energy",
+      "market_cap": 107297423360,
+      "volatility": 0.0169
+    },
+    {
+      "ticker": "PH",
+      "name": "Parker-Hannifin Corporation",
+      "price": 844.01,
+      "sector": "Industrials",
+      "market_cap": 106804461568,
+      "volatility": 0.022
+    },
+    {
+      "ticker": "LMT",
+      "name": "Lockheed Martin Corporation",
+      "price": 458.35,
+      "sector": "Industrials",
+      "market_cap": 106061176832,
+      "volatility": 0.0117
+    },
+    {
+      "ticker": "MCK",
+      "name": "McKesson Corporation",
+      "price": 851.99,
+      "sector": "Healthcare",
+      "market_cap": 105158270976,
+      "volatility": 0.0118
+    },
+    {
+      "ticker": "VRTX",
+      "name": "Vertex Pharmaceuticals Incorporated",
+      "price": 409.47,
+      "sector": "Healthcare",
+      "market_cap": 103890247680,
+      "volatility": 0.0108
+    },
+    {
+      "ticker": "SO",
+      "name": "The Southern Company",
+      "price": 91.44,
+      "sector": "Utilities",
+      "market_cap": 100685037568,
+      "volatility": 0.0102
+    },
+    {
+      "ticker": "CVS",
+      "name": "CVS Health Corporation",
+      "price": 78.99,
+      "sector": "Healthcare",
+      "market_cap": 100272463872,
+      "volatility": 0.0146
+    },
+    {
+      "ticker": "CME",
+      "name": "CME Group Inc.",
+      "price": 276.5,
+      "sector": "Financials",
+      "market_cap": 99705839616,
+      "volatility": 0.0118
+    },
+    {
+      "ticker": "CMCSA",
+      "name": "Comcast Corporation",
+      "price": 27.35,
+      "sector": "Communication",
+      "market_cap": 99660513280,
+      "volatility": 0.0178
+    },
+    {
+      "ticker": "MO",
+      "name": "Altria Group, Inc.",
+      "price": 58.03,
+      "sector": "Consumer",
+      "market_cap": 97413308416,
+      "volatility": 0.0197
+    },
+    {
+      "ticker": "SBUX",
+      "name": "Starbucks Corporation",
+      "price": 85.57,
+      "sector": "Consumer",
+      "market_cap": 97284530176,
+      "volatility": 0.0188
+    },
+    {
+      "ticker": "DUK",
+      "name": "Duke Energy Corporation",
+      "price": 123.66,
+      "sector": "Utilities",
+      "market_cap": 96161038336,
+      "volatility": 0.0086
+    },
+    {
+      "ticker": "BMY",
+      "name": "Bristol-Myers Squibb Company",
+      "price": 46.69,
+      "sector": "Healthcare",
+      "market_cap": 95049310208,
+      "volatility": 0.0181
+    },
+    {
+      "ticker": "NEM",
+      "name": "Newmont Corporation",
+      "price": 83.39,
+      "sector": "Materials",
+      "market_cap": 91000422400,
+      "volatility": 0.041
+    },
+    {
+      "ticker": "NKE",
+      "name": "NIKE, Inc.",
+      "price": 61.09,
+      "sector": "Consumer",
+      "market_cap": 90303324160,
+      "volatility": 0.0179
+    },
+    {
+      "ticker": "SNOW",
+      "name": "Snowflake Inc.",
+      "price": 262.86,
+      "sector": "Technology",
+      "market_cap": 89056960512,
+      "volatility": 0.0207
+    },
+    {
+      "ticker": "CDNS",
+      "name": "Cadence Design Systems, Inc.",
+      "price": 325.05,
+      "sector": "Technology",
+      "market_cap": 88478932992,
+      "volatility": 0.019
+    },
+    {
+      "ticker": "MMC",
+      "name": "Marsh & McLennan Companies, Inc.",
+      "price": 180.05,
+      "sector": "Financials",
+      "market_cap": 88208244736,
+      "volatility": 0.0212
+    },
+    {
+      "ticker": "DASH",
+      "name": "DoorDash, Inc.",
+      "price": 204.31,
+      "sector": "Consumer",
+      "market_cap": 88057307136,
+      "volatility": 0.0428
+    },
+    {
+      "ticker": "MMM",
+      "name": "3M Company",
+      "price": 164.84,
+      "sector": "Industrials",
+      "market_cap": 87567138816,
+      "volatility": 0.0223
+    },
+    {
+      "ticker": "ICE",
+      "name": "Intercontinental Exchange, Inc.",
+      "price": 149.0,
+      "sector": "Financials",
+      "market_cap": 84956602368,
+      "volatility": 0.0137
+    },
+    {
+      "ticker": "SHW",
+      "name": "The Sherwin-Williams Company",
+      "price": 340.16,
+      "sector": "Materials",
+      "market_cap": 84323459072,
+      "volatility": 0.0165
+    },
+    {
+      "ticker": "COIN",
+      "name": "Coinbase Global, Inc.",
+      "price": 309.14,
+      "sector": "Financials",
+      "market_cap": 83357687808,
+      "volatility": 0.045
+    },
+    {
+      "ticker": "AMT",
+      "name": "American Tower Corporation",
+      "price": 177.95,
+      "sector": "Real Estate",
+      "market_cap": 83306692608,
+      "volatility": 0.0135
+    },
+    {
+      "ticker": "ORLY",
+      "name": "O'Reilly Automotive, Inc.",
+      "price": 97.09,
+      "sector": "Consumer",
+      "market_cap": 82141274112,
+      "volatility": 0.0148
+    },
+    {
+      "ticker": "NET",
+      "name": "Cloudflare, Inc.",
+      "price": 232.81,
+      "sector": "Technology",
+      "market_cap": 81548951552,
+      "volatility": 0.0388
+    },
+    {
+      "ticker": "UPS",
+      "name": "United Parcel Service, Inc.",
+      "price": 95.95,
+      "sector": "Industrials",
+      "market_cap": 81402593280,
+      "volatility": 0.0223
+    },
+    {
+      "ticker": "WM",
+      "name": "Waste Management, Inc.",
+      "price": 201.92,
+      "sector": "Industrials",
+      "market_cap": 81346912256,
+      "volatility": 0.015
+    },
+    {
+      "ticker": "NOC",
+      "name": "Northrop Grumman Corporation",
+      "price": 568.61,
+      "sector": "Industrials",
+      "market_cap": 81152057344,
+      "volatility": 0.0113
+    },
+    {
+      "ticker": "EQIX",
+      "name": "Equinix, Inc.",
+      "price": 824.75,
+      "sector": "Real Estate",
+      "market_cap": 80978968576,
+      "volatility": 0.0154
+    },
+    {
+      "ticker": "MAR",
+      "name": "Marriott International, Inc.",
+      "price": 291.16,
+      "sector": "Consumer",
+      "market_cap": 78133305344,
+      "volatility": 0.0189
+    },
+    {
+      "ticker": "APO",
+      "name": "Apollo Global Management, Inc.",
+      "price": 132.37,
+      "sector": "Financials",
+      "market_cap": 76826107904,
+      "volatility": 0.0274
+    },
+    {
+      "ticker": "BK",
+      "name": "The Bank of New York Mellon Corporation",
+      "price": 109.64,
+      "sector": "Financials",
+      "market_cap": 76457353216,
+      "volatility": 0.0118
+    },
+    {
+      "ticker": "RBLX",
+      "name": "Roblox Corporation",
+      "price": 106.84,
+      "sector": "Communication",
+      "market_cap": 74993721344,
+      "volatility": 0.0424
+    },
+    {
+      "ticker": "MDLZ",
+      "name": "Mondelez International, Inc.",
+      "price": 57.18,
+      "sector": "Consumer",
+      "market_cap": 73782697984,
+      "volatility": 0.0138
+    },
+    {
+      "ticker": "USB",
+      "name": "U.S. Bancorp",
+      "price": 47.32,
+      "sector": "Financials",
+      "market_cap": 73555820544,
+      "volatility": 0.0149
+    },
+    {
+      "ticker": "ABNB",
+      "name": "Airbnb, Inc.",
+      "price": 120.88,
+      "sector": "Consumer",
+      "market_cap": 73295560704,
+      "volatility": 0.0145
+    },
+    {
+      "ticker": "SNPS",
+      "name": "Synopsys, Inc.",
+      "price": 393.43,
+      "sector": "Technology",
+      "market_cap": 73079095296,
+      "volatility": 0.0281
+    },
+    {
+      "ticker": "EMR",
+      "name": "Emerson Electric Co.",
+      "price": 129.49,
+      "sector": "Industrials",
+      "market_cap": 72876974080,
+      "volatility": 0.0174
+    },
+    {
+      "ticker": "ECL",
+      "name": "Ecolab Inc.",
+      "price": 256.13,
+      "sector": "Materials",
+      "market_cap": 72545148928,
+      "volatility": 0.0167
+    },
+    {
+      "ticker": "PNC",
+      "name": "The PNC Financial Services Group, Inc.",
+      "price": 184.2,
+      "sector": "Financials",
+      "market_cap": 72235589632,
+      "volatility": 0.0161
+    },
+    {
+      "ticker": "ITW",
+      "name": "Illinois Tool Works Inc.",
+      "price": 245.49,
+      "sector": "Industrials",
+      "market_cap": 71216652288,
+      "volatility": 0.0146
+    },
+    {
+      "ticker": "CI",
+      "name": "The Cigna Group",
+      "price": 264.58,
+      "sector": "Healthcare",
+      "market_cap": 70676144128,
+      "volatility": 0.0437
+    },
+    {
+      "ticker": "ELV",
+      "name": "Elevance Health, Inc.",
+      "price": 317.78,
+      "sector": "Healthcare",
+      "market_cap": 70623035392,
+      "volatility": 0.0121
+    },
+    {
+      "ticker": "COR",
+      "name": "Cencora, Inc.",
+      "price": 360.7,
+      "sector": "Healthcare",
+      "market_cap": 69931753472,
+      "volatility": 0.0098
+    },
+    {
+      "ticker": "SPG",
+      "name": "Simon Property Group, Inc.",
+      "price": 183.6,
+      "sector": "Real Estate",
+      "market_cap": 69250834432,
+      "volatility": 0.0124
+    },
+    {
+      "ticker": "REGN",
+      "name": "Regeneron Pharmaceuticals, Inc.",
+      "price": 657.53,
+      "sector": "Healthcare",
+      "market_cap": 69106057216,
+      "volatility": 0.028
+    },
+    {
+      "ticker": "DDOG",
+      "name": "Datadog, Inc.",
+      "price": 191.24,
+      "sector": "Technology",
+      "market_cap": 67062276096,
+      "volatility": 0.054
+    },
+    {
+      "ticker": "GM",
+      "name": "General Motors Company",
+      "price": 70.75,
+      "sector": "Consumer",
+      "market_cap": 65999937536,
+      "volatility": 0.0347
+    },
+    {
+      "ticker": "CSX",
+      "name": "CSX Corporation",
+      "price": 35.34,
+      "sector": "Industrials",
+      "market_cap": 65807921152,
+      "volatility": 0.0112
+    },
+    {
+      "ticker": "CMI",
+      "name": "Cummins Inc.",
+      "price": 473.34,
+      "sector": "Industrials",
+      "market_cap": 65338081280,
+      "volatility": 0.0247
+    },
+    {
+      "ticker": "AEP",
+      "name": "American Electric Power Company, Inc.",
+      "price": 121.43,
+      "sector": "Utilities",
+      "market_cap": 64997302272,
+      "volatility": 0.015
+    },
+    {
+      "ticker": "NSC",
+      "name": "Norfolk Southern Corporation",
+      "price": 284.25,
+      "sector": "Industrials",
+      "market_cap": 63781896192,
+      "volatility": 0.0084
+    },
+    {
+      "ticker": "RSG",
+      "name": "Republic Services, Inc.",
+      "price": 205.59,
+      "sector": "Industrials",
+      "market_cap": 63643176960,
+      "volatility": 0.0117
+    },
+    {
+      "ticker": "CL",
+      "name": "Colgate-Palmolive Company",
+      "price": 78.76,
+      "sector": "Consumer",
+      "market_cap": 63485677568,
+      "volatility": 0.0134
+    },
+    {
+      "ticker": "PYPL",
+      "name": "PayPal Holdings, Inc.",
+      "price": 66.22,
+      "sector": "Financials",
+      "market_cap": 61958873088,
+      "volatility": 0.0283
+    },
+    {
+      "ticker": "AZO",
+      "name": "AutoZone, Inc.",
+      "price": 3718.26,
+      "sector": "Consumer",
+      "market_cap": 61844566016,
+      "volatility": 0.0156
+    },
+    {
+      "ticker": "FDX",
+      "name": "FedEx Corporation",
+      "price": 262.09,
+      "sector": "Industrials",
+      "market_cap": 61841563648,
+      "volatility": 0.0167
+    },
+    {
+      "ticker": "SRE",
+      "name": "Sempra",
+      "price": 93.72,
+      "sector": "Utilities",
+      "market_cap": 61169315840,
+      "volatility": 0.0089
+    },
+    {
+      "ticker": "DLR",
+      "name": "Digital Realty Trust, Inc.",
+      "price": 169.89,
+      "sector": "Real Estate",
+      "market_cap": 59411304448,
+      "volatility": 0.0178
+    },
+    {
+      "ticker": "KMI",
+      "name": "Kinder Morgan, Inc.",
+      "price": 26.55,
+      "sector": "Energy",
+      "market_cap": 59067383808,
+      "volatility": 0.0143
+    },
+    {
+      "ticker": "MPC",
+      "name": "Marathon Petroleum Corporation",
+      "price": 193.76,
+      "sector": "Energy",
+      "market_cap": 58244730880,
+      "volatility": 0.0228
+    },
+    {
+      "ticker": "APD",
+      "name": "Air Products and Chemicals, Inc.",
+      "price": 259.74,
+      "sector": "Materials",
+      "market_cap": 57806077952,
+      "volatility": 0.023
+    },
+    {
+      "ticker": "EOG",
+      "name": "EOG Resources, Inc.",
+      "price": 105.41,
+      "sector": "Energy",
+      "market_cap": 57553166336,
+      "volatility": 0.0108
+    },
+    {
+      "ticker": "TFC",
+      "name": "Truist Financial Corporation",
+      "price": 44.74,
+      "sector": "Financials",
+      "market_cap": 57233481728,
+      "volatility": 0.0199
+    },
+    {
+      "ticker": "FCX",
+      "name": "Freeport-McMoRan Inc.",
+      "price": 39.81,
+      "sector": "Materials",
+      "market_cap": 57164398592,
+      "volatility": 0.0246
+    },
+    {
+      "ticker": "IDXX",
+      "name": "IDEXX Laboratories, Inc.",
+      "price": 708.45,
+      "sector": "Healthcare",
+      "market_cap": 56570675200,
+      "volatility": 0.0336
+    },
+    {
+      "ticker": "PSX",
+      "name": "Phillips 66",
+      "price": 137.95,
+      "sector": "Energy",
+      "market_cap": 55582965760,
+      "volatility": 0.0165
+    },
+    {
+      "ticker": "SLB",
+      "name": "SLB N.V.",
+      "price": 36.66,
+      "sector": "Energy",
+      "market_cap": 54767239168,
+      "volatility": 0.0204
+    },
+    {
+      "ticker": "VLO",
+      "name": "Valero Energy Corporation",
+      "price": 175.62,
+      "sector": "Energy",
+      "market_cap": 53565771776,
+      "volatility": 0.0226
+    },
+    {
+      "ticker": "ZTS",
+      "name": "Zoetis Inc.",
+      "price": 120.24,
+      "sector": "Healthcare",
+      "market_cap": 52988952576,
+      "volatility": 0.0309
+    },
+    {
+      "ticker": "F",
+      "name": "Ford Motor Company",
+      "price": 13.21,
+      "sector": "Consumer",
+      "market_cap": 52635226112,
+      "volatility": 0.0315
+    },
+    {
+      "ticker": "D",
+      "name": "Dominion Energy, Inc.",
+      "price": 61.58,
+      "sector": "Utilities",
+      "market_cap": 52583981056,
+      "volatility": 0.0107
+    },
+    {
+      "ticker": "ROST",
+      "name": "Ross Stores, Inc.",
+      "price": 161.08,
+      "sector": "Consumer",
+      "market_cap": 52387446784,
+      "volatility": 0.0143
+    },
+    {
+      "ticker": "O",
+      "name": "Realty Income Corporation",
+      "price": 56.87,
+      "sector": "Real Estate",
+      "market_cap": 52315041792,
+      "volatility": 0.0114
+    },
+    {
+      "ticker": "PCAR",
+      "name": "PACCAR Inc",
+      "price": 98.69,
+      "sector": "Industrials",
+      "market_cap": 51832418304,
+      "volatility": 0.016
+    },
+    {
+      "ticker": "ZS",
+      "name": "Zscaler, Inc.",
+      "price": 320.01,
+      "sector": "Technology",
+      "market_cap": 50657845248,
+      "volatility": 0.018
+    },
+    {
+      "ticker": "ARES",
+      "name": "Ares Management Corporation",
+      "price": 153.88,
+      "sector": "Financials",
+      "market_cap": 50298621952,
+      "volatility": 0.0257
+    },
+    {
+      "ticker": "EA",
+      "name": "Electronic Arts Inc.",
+      "price": 200.6,
+      "sector": "Communication",
+      "market_cap": 50030555136,
+      "volatility": 0.0015
+    },
+    {
+      "ticker": "PSA",
+      "name": "Public Storage",
+      "price": 278.05,
+      "sector": "Real Estate",
+      "market_cap": 48787488768,
+      "volatility": 0.0138
+    },
+    {
+      "ticker": "EW",
+      "name": "Edwards Lifesciences Corporation",
+      "price": 83.39,
+      "sector": "Healthcare",
+      "market_cap": 48391221248,
+      "volatility": 0.0173
+    },
+    {
+      "ticker": "VEEV",
+      "name": "Veeva Systems Inc.",
+      "price": 294.86,
+      "sector": "Healthcare",
+      "market_cap": 48329916416,
+      "volatility": 0.0151
+    },
+    {
+      "ticker": "XEL",
+      "name": "Xcel Energy Inc.",
+      "price": 80.91,
+      "sector": "Utilities",
+      "market_cap": 47861485568,
+      "volatility": 0.0081
+    },
+    {
+      "ticker": "EXC",
+      "name": "Exelon Corporation",
+      "price": 46.21,
+      "sector": "Utilities",
+      "market_cap": 46593093632,
+      "volatility": 0.0089
+    },
+    {
+      "ticker": "TTWO",
+      "name": "Take-Two Interactive Software, Inc.",
+      "price": 232.0,
+      "sector": "Communication",
+      "market_cap": 42868690944,
+      "volatility": 0.0198
+    },
+    {
+      "ticker": "DHI",
+      "name": "D.R. Horton, Inc.",
+      "price": 144.77,
+      "sector": "Consumer",
+      "market_cap": 42631172096,
+      "volatility": 0.0183
+    },
+    {
+      "ticker": "PEG",
+      "name": "Public Service Enterprise Group Incorporated",
+      "price": 83.31,
+      "sector": "Utilities",
+      "market_cap": 41584517120,
+      "volatility": 0.0147
+    },
+    {
+      "ticker": "TEAM",
+      "name": "Atlassian Corporation",
+      "price": 157.83,
+      "sector": "Technology",
+      "market_cap": 41526824960,
+      "volatility": 0.0332
+    },
+    {
+      "ticker": "YUM",
+      "name": "Yum! Brands, Inc.",
+      "price": 149.12,
+      "sector": "Consumer",
+      "market_cap": 41386119168,
+      "volatility": 0.0201
+    },
+    {
+      "ticker": "OXY",
+      "name": "Occidental Petroleum Corporation",
+      "price": 41.31,
+      "sector": "Energy",
+      "market_cap": 40667205632,
+      "volatility": 0.0186
+    },
+    {
+      "ticker": "CMG",
+      "name": "Chipotle Mexican Grill, Inc.",
+      "price": 30.59,
+      "sector": "Consumer",
+      "market_cap": 40448483328,
+      "volatility": 0.0416
+    },
+    {
+      "ticker": "VMC",
+      "name": "Vulcan Materials Company",
+      "price": 287.3,
+      "sector": "Materials",
+      "market_cap": 37961207808,
+      "volatility": 0.0113
+    },
+    {
+      "ticker": "EBAY",
+      "name": "eBay Inc.",
+      "price": 83.8,
+      "sector": "Consumer",
+      "market_cap": 37877600256,
+      "volatility": 0.0386
+    },
+    {
+      "ticker": "MLM",
+      "name": "Martin Marietta Materials, Inc.",
+      "price": 610.64,
+      "sector": "Materials",
+      "market_cap": 36825956352,
+      "volatility": 0.0126
+    },
+    {
+      "ticker": "WEC",
+      "name": "WEC Energy Group, Inc.",
+      "price": 112.87,
+      "sector": "Utilities",
+      "market_cap": 36715962368,
+      "volatility": 0.0099
+    },
+    {
+      "ticker": "RMD",
+      "name": "ResMed Inc.",
+      "price": 251.49,
+      "sector": "Healthcare",
+      "market_cap": 36709060608,
+      "volatility": 0.0107
+    },
+    {
+      "ticker": "IQV",
+      "name": "IQVIA Holdings Inc.",
+      "price": 210.46,
+      "sector": "Healthcare",
+      "market_cap": 35841339392,
+      "volatility": 0.015
+    },
+    {
+      "ticker": "KMB",
+      "name": "Kimberly-Clark Corporation",
+      "price": 103.85,
+      "sector": "Consumer",
+      "market_cap": 34463498240,
+      "volatility": 0.0341
+    },
+    {
+      "ticker": "SOFI",
+      "name": "SoFi Technologies, Inc.",
+      "price": 28.21,
+      "sector": "Financials",
+      "market_cap": 34018525184,
+      "volatility": 0.0468
+    },
+    {
+      "ticker": "NUE",
+      "name": "Nucor Corporation",
+      "price": 144.31,
+      "sector": "Materials",
+      "market_cap": 33124257792,
+      "volatility": 0.0244
+    },
+    {
+      "ticker": "STT",
+      "name": "State Street Corporation",
+      "price": 118.31,
+      "sector": "Financials",
+      "market_cap": 33045454848,
+      "volatility": 0.0193
+    },
+    {
+      "ticker": "VICI",
+      "name": "VICI Properties Inc.",
+      "price": 30.34,
+      "sector": "Real Estate",
+      "market_cap": 32427737088,
+      "volatility": 0.011
+    },
+    {
+      "ticker": "LEN",
+      "name": "Lennar Corporation",
+      "price": 121.55,
+      "sector": "Consumer",
+      "market_cap": 30776107008,
+      "volatility": 0.0151
+    },
+    {
+      "ticker": "MCHP",
+      "name": "Microchip Technology Incorporated",
+      "price": 56.28,
+      "sector": "Technology",
+      "market_cap": 30416347136,
+      "volatility": 0.0318
+    },
+    {
+      "ticker": "MDB",
+      "name": "MongoDB, Inc.",
+      "price": 361.04,
+      "sector": "Technology",
+      "market_cap": 29373093888,
+      "volatility": 0.0212
+    },
+    {
+      "ticker": "K",
+      "name": "Kellanova",
+      "price": 83.34,
+      "sector": "Consumer",
+      "market_cap": 28996704256,
+      "volatility": 0.001
+    },
+    {
+      "ticker": "FSLR",
+      "name": "First Solar, Inc.",
+      "price": 267.64,
+      "sector": "Technology",
+      "market_cap": 28719953920,
+      "volatility": 0.0441
+    },
+    {
+      "ticker": "ES",
+      "name": "Eversource Energy",
+      "price": 73.04,
+      "sector": "Utilities",
+      "market_cap": 27403816960,
+      "volatility": 0.0122
+    },
+    {
+      "ticker": "AVB",
+      "name": "AvalonBay Communities, Inc.",
+      "price": 177.38,
+      "sector": "Real Estate",
+      "market_cap": 25116110848,
+      "volatility": 0.0126
+    },
+    {
+      "ticker": "GIS",
+      "name": "General Mills, Inc.",
+      "price": 46.88,
+      "sector": "Consumer",
+      "market_cap": 25006561280,
+      "volatility": 0.0145
+    },
+    {
+      "ticker": "BNTX",
+      "name": "BioNTech SE",
+      "price": 103.14,
+      "sector": "Healthcare",
+      "market_cap": 24800575488,
+      "volatility": 0.0121
+    },
+    {
+      "ticker": "ZM",
+      "name": "Zoom Communications Inc.",
+      "price": 81.69,
+      "sector": "Technology",
+      "market_cap": 24448950272,
+      "volatility": 0.0184
+    },
+    {
+      "ticker": "AFRM",
+      "name": "Affirm Holdings, Inc.",
+      "price": 73.62,
+      "sector": "Technology",
+      "market_cap": 24300021760,
+      "volatility": 0.0471
+    },
+    {
+      "ticker": "EQR",
+      "name": "Equity Residential",
+      "price": 59.71,
+      "sector": "Real Estate",
+      "market_cap": 23414593536,
+      "volatility": 0.0149
+    },
+    {
+      "ticker": "BIIB",
+      "name": "Biogen Inc.",
+      "price": 155.51,
+      "sector": "Healthcare",
+      "market_cap": 22813669376,
+      "volatility": 0.0154
+    },
+    {
+      "ticker": "WAT",
+      "name": "Waters Corporation",
+      "price": 371.69,
+      "sector": "Healthcare",
+      "market_cap": 22128467968,
+      "volatility": 0.0178
+    },
+    {
+      "ticker": "DXCM",
+      "name": "DexCom, Inc.",
+      "price": 55.0,
+      "sector": "Healthcare",
+      "market_cap": 21450893312,
+      "volatility": 0.0378
+    },
+    {
+      "ticker": "SBAC",
+      "name": "SBA Communications Corporation",
+      "price": 197.4,
+      "sector": "Real Estate",
+      "market_cap": 21035536384,
+      "volatility": 0.0105
+    },
+    {
+      "ticker": "TWLO",
+      "name": "Twilio Inc.",
+      "price": 127.68,
+      "sector": "Technology",
+      "market_cap": 19357925376,
+      "volatility": 0.0478
+    },
+    {
+      "ticker": "CG",
+      "name": "The Carlyle Group Inc.",
+      "price": 52.43,
+      "sector": "Financials",
+      "market_cap": 18880043008,
+      "volatility": 0.0237
+    },
+    {
+      "ticker": "RIVN",
+      "name": "Rivian Automotive, Inc.",
+      "price": 15.23,
+      "sector": "Consumer",
+      "market_cap": 18670655488,
+      "volatility": 0.0563
+    },
+    {
+      "ticker": "ILMN",
+      "name": "Illumina, Inc.",
+      "price": 121.9,
+      "sector": "Healthcare",
+      "market_cap": 18626320384,
+      "volatility": 0.0589
+    },
+    {
+      "ticker": "ZBH",
+      "name": "Zimmer Biomet Holdings, Inc.",
+      "price": 88.5,
+      "sector": "Healthcare",
+      "market_cap": 17539067904,
+      "volatility": 0.0361
+    },
+    {
+      "ticker": "U",
+      "name": "Unity Software Inc.",
+      "price": 40.03,
+      "sector": "Technology",
+      "market_cap": 17129350144,
+      "volatility": 0.0563
+    },
+    {
+      "ticker": "DD",
+      "name": "DuPont de Nemours, Inc.",
+      "price": 39.8,
+      "sector": "Materials",
+      "market_cap": 16675217408,
+      "volatility": 0.0268
+    },
+    {
+      "ticker": "DOW",
+      "name": "Dow Inc.",
+      "price": 22.29,
+      "sector": "Materials",
+      "market_cap": 15843005440,
+      "volatility": 0.0378
+    },
+    {
+      "ticker": "ROKU",
+      "name": "Roku, Inc.",
+      "price": 102.3,
+      "sector": "Communication",
+      "market_cap": 15115006976,
+      "volatility": 0.027
+    },
+    {
+      "ticker": "OKTA",
+      "name": "Okta, Inc.",
+      "price": 85.21,
+      "sector": "Technology",
+      "market_cap": 15021320192,
+      "volatility": 0.0197
+    },
+    {
+      "ticker": "DOCU",
+      "name": "DocuSign, Inc.",
+      "price": 69.7,
+      "sector": "Technology",
+      "market_cap": 14016956416,
+      "volatility": 0.0211
+    },
+    {
+      "ticker": "MRNA",
+      "name": "Moderna, Inc.",
+      "price": 24.54,
+      "sector": "Healthcare",
+      "market_cap": 9584851968,
+      "volatility": 0.0456
+    },
+    {
+      "ticker": "ESTC",
+      "name": "Elastic N.V.",
+      "price": 90.02,
+      "sector": "Technology",
+      "market_cap": 9566644224,
+      "volatility": 0.0241
+    },
+    {
+      "ticker": "BAX",
+      "name": "Baxter International Inc.",
+      "price": 18.0,
+      "sector": "Healthcare",
+      "market_cap": 9253004288,
+      "volatility": 0.0335
+    },
+    {
+      "ticker": "TECH",
+      "name": "Bio-Techne Corporation",
+      "price": 57.41,
+      "sector": "Healthcare",
+      "market_cap": 8945207296,
+      "volatility": 0.0195
+    },
+    {
+      "ticker": "LYFT",
+      "name": "Lyft, Inc.",
+      "price": 22.04,
+      "sector": "Technology",
+      "market_cap": 8801748992,
+      "volatility": 0.0334
+    },
+    {
+      "ticker": "MTCH",
+      "name": "Match Group, Inc.",
+      "price": 32.87,
+      "sector": "Communication",
+      "market_cap": 7759626752,
+      "volatility": 0.0187
+    },
+    {
+      "ticker": "ETSY",
+      "name": "Etsy, Inc.",
+      "price": 59.09,
+      "sector": "Consumer",
+      "market_cap": 5832538112,
+      "volatility": 0.0402
+    },
+    {
+      "ticker": "LCID",
+      "name": "Lucid Group, Inc.",
+      "price": 17.28,
+      "sector": "Consumer",
+      "market_cap": 5601631232,
+      "volatility": 0.0316
+    },
+    {
+      "ticker": "DOCN",
+      "name": "DigitalOcean Holdings, Inc.",
+      "price": 49.48,
+      "sector": "Technology",
+      "market_cap": 4527031296,
+      "volatility": 0.0543
+    },
+    {
+      "ticker": "ENPH",
+      "name": "Enphase Energy, Inc.",
+      "price": 30.22,
+      "sector": "Technology",
+      "market_cap": 3954580480,
+      "volatility": 0.0487
+    },
+    {
+      "ticker": "PLUG",
+      "name": "Plug Power Inc.",
+      "price": 2.65,
+      "sector": "Industrials",
+      "market_cap": 3086548736,
+      "volatility": 0.0586
+    }
+  ]
+}
