@@ -446,6 +446,10 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
     println!("[BUDGET] Portfolio cost: ${:.2} / ${:.2} (${:.2} remaining)", 
              total_cost, budget, budget - total_cost);
     
+    if total_cost > budget {
+        return Vec::new();
+    }
+
     portfolio
 }
 

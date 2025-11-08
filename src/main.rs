@@ -324,6 +324,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 profile.budget,
                 profile.risk_tolerance
             );
+
             // If the built portfolio has zero total market value (e.g., no quantities or prices missing), skip.
             let mut portfolio_value = 0.0f64;
             for (ticker, qty) in &portfolio {

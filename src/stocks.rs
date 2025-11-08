@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
 use std::collections::HashMap;
+use serde_json::Value;
+use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stock {
@@ -154,15 +156,18 @@ pub fn load_stocks_from_cache(cache_file: &str) -> Result<Vec<Stock>, Box<dyn Er
 
 pub async fn prefetch_all_stocks() -> Result<Vec<Stock>, Box<dyn Error>> {
     // Try monthly cache first (preferred, faster, more accurate)
-    if let Ok(stocks) = load_stocks_from_cache("stocks_cache_monthly.json") {
+    if let Ok(mut stocks) = load_stocks_from_cache("stocks_cache_monthly.json") {
         // println!("[CACHE] Using monthly price cache (optimal)\n");
+        // Update current prices in-memory and persist them back into the cache file
+        let _ = update_current_prices_and_persist("stocks_cache_monthly.json", &mut stocks).await;
         return Ok(stocks);
     }
     
     // Fallback to legacy cache
     match load_stocks_from_cache("stocks_cache.json") {
-        Ok(stocks) => {
+        Ok(mut stocks) => {
             // println!("[CACHE] Using legacy period cache\n");
+            let _ = update_current_prices_and_persist("stocks_cache.json", &mut stocks).await;
             Ok(stocks)
         }
         Err(e) => {
@@ -172,6 +177,80 @@ pub async fn prefetch_all_stocks() -> Result<Vec<Stock>, Box<dyn Error>> {
             Err(e)
         }
     }
+}
+
+// Update prices from Yahoo Finance in batches and persist into the cache JSON
+pub async fn update_current_prices_and_persist(cache_file: &str, stocks: &mut [Stock]) -> Result<(), Box<dyn Error>> {
+    // Small batch size to avoid URL length / throttling
+    let batch_size = 50;
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()?;
+
+    let tickers: Vec<String> = stocks.iter().map(|s| s.ticker.clone()).collect();
+
+    for chunk_start in (0..tickers.len()).step_by(batch_size) {
+        let chunk_end = std::cmp::min(chunk_start + batch_size, tickers.len());
+        let chunk = &tickers[chunk_start..chunk_end];
+        if chunk.is_empty() {
+            break;
+        }
+
+        let symbols = chunk.join(",");
+        let url = format!("https://query1.finance.yahoo.com/v7/finance/quote?symbols={}", symbols);
+
+        let resp = client.get(&url).send().await?;
+        let json: Value = resp.json().await?;
+
+        if let Some(results) = json["quoteResponse"]["result"].as_array() {
+            for item in results {
+                if let Some(sym) = item["symbol"].as_str() {
+                    let price = item["regularMarketPrice"]
+                        .as_f64()
+                        .or_else(|| item["postMarketPrice"].as_f64())
+                        .or_else(|| item["regularMarketPreviousClose"].as_f64());
+
+                    if let Some(p) = price {
+                        // update in-memory
+                        for s in stocks.iter_mut().filter(|s| s.ticker == sym) {
+                            s.price = p;
+                        }
+                    }
+                }
+            }
+        }
+
+        // polite pause to avoid throttling
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    }
+
+    // Persist updated prices back into the cache JSON file (best-effort)
+    if let Ok(contents) = std::fs::read_to_string(cache_file) {
+        if let Ok(mut v) = serde_json::from_str::<Value>(&contents) {
+            if let Some(arr) = v.get_mut("stocks").and_then(|s| s.as_array_mut()) {
+                // build quick map ticker -> price from current stocks slice
+                let mut price_map: HashMap<String, f64> = HashMap::new();
+                for s in stocks.iter() {
+                    price_map.insert(s.ticker.clone(), s.price);
+                }
+
+                for entry in arr.iter_mut() {
+                    if let Some(sym) = entry.get("ticker").and_then(|t| t.as_str()) {
+                        if let Some(&p) = price_map.get(sym) {
+                            entry["price"] = serde_json::json!(p);
+                        }
+                    }
+                }
+
+                // Write back (atomic write preferred, but simple write here)
+                let tmp_path = format!("{}.tmp", cache_file);
+                std::fs::write(&tmp_path, serde_json::to_string_pretty(&v)?)?;
+                std::fs::rename(&tmp_path, cache_file)?;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// Get price for a specific stock on a specific date using monthly cache
