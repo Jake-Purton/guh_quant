@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2025-11-08T13:55:33.736409",
+    "generated_at": "2025-11-08T14:25:00.787910",
     "stock_count": 235,
     "sector_keywords": {
       "Technology": [
@@ -297,6 +297,16 @@
       "first_trading_date": "2020-09-30",
       "last_trading_date": "2025-11-07",
       "volatility": 0.0332
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco Wholesale Corporation",
+      "price": 922.74,
+      "sector": "Consumer",
+      "market_cap": 408939134976,
+      "first_trading_date": "1986-07-09",
+      "last_trading_date": "2025-11-07",
+      "volatility": 0.0132
     },
     {
       "ticker": "BAC",
@@ -1244,6 +1254,8 @@
       "price": 149.0,
       "sector": "Financials",
       "market_cap": 84956602368,
+      "first_trading_date": "2005-11-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0137
     },
     {
@@ -2435,16 +2447,6 @@
       "first_trading_date": "1999-10-29",
       "last_trading_date": "2025-11-07",
       "volatility": 0.0586
-    },
-    {
-      "ticker": "COST",
-      "name": "COST",
-      "price": 922.74,
-      "sector": "Technology",
-      "market_cap": 0,
-      "first_trading_date": "1986-07-09",
-      "last_trading_date": "2025-11-07",
-      "volatility": 0.0132
     }
   ]
 }

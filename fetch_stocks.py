@@ -258,6 +258,110 @@ def fetch_all_stocks(limit: int = 1000) -> List[Dict]:
     
     return stocks
 
+def fetch_historical_periods(stocks: List[Dict], start_year: int = 1980, end_year: int = 2025) -> Dict:
+    """
+    Fetch historical prices for 6-month periods from start_year to end_year.
+    Only fetches data for stocks that existed during each period (based on first_trading_date).
+    
+    Args:
+        stocks: List of stock dicts with 'ticker' and 'first_trading_date' fields
+        start_year: Starting year for historical data
+        end_year: Ending year for historical data
+    
+    Returns: {
+        "period_key": {
+            "AAPL": {"start_price": 100, "end_price": 110, "return_pct": 10.0},
+            ...
+        }
+    }
+    """
+    print(f"\n🕐 Fetching historical data for 6-month periods ({start_year}-{end_year})...")
+    print(f"   This will take a while (estimating ~{(end_year - start_year) * 2} periods)\n")
+    
+    periods_data = {}
+    
+    # Generate 6-month periods
+    current_date = datetime(start_year, 1, 1)
+    end_date = datetime(end_year, 12, 31)
+    
+    period_count = 0
+    while current_date < end_date:
+        # Calculate period end (6 months later)
+        period_end = current_date + timedelta(days=180)
+        if period_end > end_date:
+            period_end = end_date
+        
+        period_key = f"{current_date.strftime('%Y-%m-%d')}_{period_end.strftime('%Y-%m-%d')}"
+        print(f"📅 Period {period_count + 1}: {period_key}")
+        
+        # Filter stocks that existed during this period
+        eligible_stocks = []
+        for stock in stocks:
+            ticker = stock['ticker']
+            first_trading_date = stock.get('first_trading_date')
+            
+            # If we have first_trading_date, check if stock existed during period
+            if first_trading_date:
+                try:
+                    stock_start = datetime.strptime(first_trading_date, '%Y-%m-%d')
+                    # Stock must have started trading before or at period start
+                    if stock_start <= current_date:
+                        eligible_stocks.append(ticker)
+                except:
+                    # If date parsing fails, include the stock (benefit of doubt)
+                    eligible_stocks.append(ticker)
+            else:
+                # No trading date info, include it
+                eligible_stocks.append(ticker)
+        
+        print(f"   Eligible stocks for this period: {len(eligible_stocks)}/{len(stocks)}")
+        
+        period_data = {}
+        success_count = 0
+        
+        for i, ticker in enumerate(eligible_stocks):
+            if i % 50 == 0 and i > 0:
+                print(f"   Progress: {i}/{len(eligible_stocks)} eligible tickers...")
+            
+            try:
+                stock = yf.Ticker(ticker)
+                hist = stock.history(
+                    start=current_date.strftime('%Y-%m-%d'),
+                    end=period_end.strftime('%Y-%m-%d')
+                )
+                
+                if not hist.empty and len(hist) >= 2:
+                    start_price = hist['Close'].iloc[0]
+                    end_price = hist['Close'].iloc[-1]
+                    
+                    if pd.notna(start_price) and pd.notna(end_price) and start_price > 0:
+                        return_pct = ((end_price - start_price) / start_price) * 100
+                        period_data[ticker] = {
+                            "start_price": round(float(start_price), 2),
+                            "end_price": round(float(end_price), 2),
+                            "return_pct": round(float(return_pct), 2)
+                        }
+                        success_count += 1
+            except Exception as e:
+                pass  # Skip failures silently
+            
+            # Rate limiting
+            if i % 10 == 0:
+                time.sleep(0.1)
+        
+        periods_data[period_key] = period_data
+        print(f"   ✅ Cached {success_count}/{len(eligible_stocks)} stocks for this period\n")
+        
+        # Move to next period
+        current_date = period_end
+        period_count += 1
+        
+        # Longer pause between periods
+        time.sleep(1)
+    
+    print(f"✅ Completed historical data for {period_count} periods\n")
+    return periods_data
+
 def generate_metadata() -> Dict:
     """Generate metadata about sector keywords."""
     return {
@@ -267,7 +371,7 @@ def generate_metadata() -> Dict:
         "sectors": list(SECTOR_KEYWORDS.keys())
     }
 
-def save_to_json(stocks: List[Dict], output_file: str = "stocks_cache.json"):
+def save_to_json(stocks: List[Dict], historical_periods: Dict = None, output_file: str = "stocks_cache.json"):
     """Save stocks data to JSON file for Rust to read."""
     metadata = generate_metadata()
     metadata['stock_count'] = len(stocks)
@@ -279,6 +383,11 @@ def save_to_json(stocks: List[Dict], output_file: str = "stocks_cache.json"):
         "metadata": metadata,
         "stocks": stocks_sorted
     }
+    
+    # Add historical periods if provided
+    if historical_periods:
+        data["historical_periods"] = historical_periods
+        print(f"📅 Added {len(historical_periods)} historical periods to cache")
     
     with open(output_file, 'w') as f:
         json.dump(data, f, indent=2)
@@ -310,13 +419,21 @@ def main():
         print("❌ No stocks fetched!")
         return
     
-    # Save to JSON
-    save_to_json(stocks, "stocks_cache.json")
+    # Fetch historical 6-month periods (1980-2025)
+    # Pass the full stocks list so we can check first_trading_date
+    print("\n" + "=" * 60)
+    print("HISTORICAL DATA CACHING")
+    print("=" * 60)
+    historical_periods = fetch_historical_periods(stocks, start_year=1980, end_year=2025)
+    
+    # Save to JSON with historical data
+    save_to_json(stocks, historical_periods, "stocks_cache.json")
     
     print("\n" + "=" * 60)
     print("✅ COMPLETE")
     print("=" * 60)
     print("\nYou can now use 'stocks_cache.json' in your Rust application!")
+    print(f"Cache includes {len(historical_periods)} historical periods (6-month intervals)")
 
 if __name__ == "__main__":
     main()

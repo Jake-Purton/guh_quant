@@ -5,9 +5,12 @@ mod portfolio;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use serde_json::{json, Value};
 use std::error::Error;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use tokio::time::{sleep, Duration};
 
 use investor::InvestorProfile;
-use stocks::prefetch_all_stocks;
+use stocks::{prefetch_all_stocks, update_stock_prices, fetch_historical_returns};
 use portfolio::{filter_stocks_by_profile, build_portfolio};
 
 const URL: &str = "http://www.prism-challenge.com";
@@ -58,7 +61,21 @@ async fn send_post_request(path: &str, data: &Value) -> Result<String, Box<dyn E
 }
 
 async fn get_context() -> Result<String, Box<dyn Error>> {
-    send_get_request("/request").await
+    // Retry logic for network issues
+    for attempt in 1..=3 {
+        match send_get_request("/request").await {
+            Ok(response) => return Ok(response),
+            Err(e) => {
+                if attempt < 3 {
+                    eprintln!("⚠️  Network error (attempt {}): {}. Retrying...", attempt, e);
+                    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    }
+    Err("Failed after 3 attempts".into())
 }
 
 async fn get_my_current_information() -> Result<String, Box<dyn Error>> {
@@ -66,16 +83,41 @@ async fn get_my_current_information() -> Result<String, Box<dyn Error>> {
 }
 
 async fn send_portfolio(weighted_stocks: Vec<(&str, i32)>) -> Result<String, Box<dyn Error>> {
+    // Submit the portfolio once. Avoid retrying POSTs because retries can
+    // trigger race conditions on the server (e.g., 403 after a late retry).
     let data: Vec<Value> = weighted_stocks
         .into_iter()
         .map(|(ticker, quantity)| json!({ "ticker": ticker, "quantity": quantity }))
         .collect();
+
     send_post_request("/submit", &json!(data)).await
 }
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Load initial stock data from cache
+    println!("🚀 Loading initial stock data...");
+    let initial_stocks = prefetch_all_stocks().await?;
+    
+    // Create shared state with Arc + RwLock for thread-safe access
+    let stocks_cache = Arc::new(RwLock::new(initial_stocks));
+    
+    // Spawn background task to update prices every 60 seconds
+    let stocks_cache_clone = Arc::clone(&stocks_cache);
+    tokio::spawn(async move {
+        loop {
+            sleep(Duration::from_secs(60)).await;
+            
+            let mut stocks = stocks_cache_clone.write().await;
+            println!("⏰ Background: Updating stock prices...");
+            if let Err(e) = update_stock_prices(&mut stocks).await {
+                eprintln!("⚠️  Background price update failed: {}", e);
+            }
+        }
+    });
+    
+    println!("✅ Background price updater started (updates every 60s)\n");
 
     loop {
         // Get team info
@@ -96,8 +138,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("  Budget: ${:.2}", profile.budget);
             println!("  Excluded: {:?}", profile.excluded_sectors);
         
-            // Pre-fetch all stock data
-            let all_stocks = prefetch_all_stocks().await?;
+            // Get current stocks from shared cache (instant read)
+            let mut all_stocks = stocks_cache.read().await.clone();
+            
+            // Fetch historical returns for the investment period if we have dates
+            if let (Some(start_year), Some(end_year)) = (profile.start_year, profile.end_year) {
+                // Construct date strings from the profile
+                // Use approximate dates if exact dates aren't available
+                let start_date = format!("{}-01-01", start_year);
+                let end_date = format!("{}-12-31", end_year);
+                
+                println!("📊 Fetching historical returns ({} to {})...", start_date, end_date);
+                if let Err(e) = fetch_historical_returns(&mut all_stocks, &start_date, &end_date).await {
+                    eprintln!("⚠️  Could not fetch historical returns: {}", e);
+                }
+            }
             
             // Filter by investor profile
             let eligible_stocks = filter_stocks_by_profile(&all_stocks, &profile);
@@ -140,7 +195,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         } else {
             println!("error in profile skipping")
-
         }
     }
 

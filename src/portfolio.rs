@@ -22,6 +22,7 @@ fn get_first_trading_year(ticker: &str) -> Option<u32> {
         ("AAPL", 1980), ("MSFT", 1986), ("INTC", 1971), ("WMT", 1972),
         ("CSCO", 1990), ("AMD", 1979), ("ADBE", 1986), ("NVDA", 1999),
         ("AMZN", 1997), ("BKNG", 1999), ("UPS", 1999), ("PLUG", 1999),
+        ("EA", 2008),  // Electronic Arts - being conservative due to 2007 ticker issues
         
         // 2000s
         ("GOOGL", 2004), ("GOOG", 2004), ("VZ", 2000), ("NFLX", 2002),
@@ -31,7 +32,7 @@ fn get_first_trading_year(ticker: &str) -> Option<u32> {
         // 2010s  
         ("META", 2012), ("ABBV", 2013), ("ZTS", 2013), ("TWTR", 2013),
         ("KMI", 2011), ("MDLZ", 2012), ("ENPH", 2012),
-        ("SHOP", 2015), ("MTCH", 2015), ("ETSY", 2015),
+        ("SHOP", 2015), ("MTCH", 2016), ("ETSY", 2015),  // MTCH actually IPO'd late 2015, be conservative
         ("TWLO", 2016), ("SNAP", 2017), ("ROKU", 2017), ("OKTA", 2017),
         ("MRNA", 2018), ("DOCU", 2018), ("VICI", 2018),
         ("ZM", 2019), ("UBER", 2019), ("LYFT", 2019), ("PINS", 2019),
@@ -41,6 +42,12 @@ fn get_first_trading_year(ticker: &str) -> Option<u32> {
         ("PLTR", 2020), ("SNOW", 2020), ("ABNB", 2020), ("DASH", 2020),
         ("RIVN", 2021), ("LCID", 2021), ("SOFI", 2021), ("COIN", 2021),
         ("RBLX", 2021), ("U", 2021), ("HOOD", 2021),
+        
+        // Additional banks/healthcare that cause issues
+        ("TFC", 2004),  // Truist (BB&T legacy ticker, merger was 2019 but BB&T IPO 2004)
+        ("ZBH", 2001),  // Zimmer Biomet
+        ("USB", 1929),  // US Bancorp (old bank)
+        ("PNC", 1983),  // PNC Financial
     ];
     
     trading_years.iter()
@@ -98,10 +105,16 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
         return Vec::new();
     }
     
-    // Sort by inverse volatility (prefer stable stocks first)
+    // Sort by historical return if available, otherwise by inverse volatility
     let mut sorted_stocks = stocks.to_vec();
     sorted_stocks.sort_by(|a, b| {
-        a.volatility.partial_cmp(&b.volatility).unwrap()
+        // If both have historical returns, sort by return (highest first)
+        match (a.historical_return, b.historical_return) {
+            (Some(ret_a), Some(ret_b)) => ret_b.partial_cmp(&ret_a).unwrap(), // Descending
+            (Some(_), None) => std::cmp::Ordering::Less,  // Stocks with returns first
+            (None, Some(_)) => std::cmp::Ordering::Greater,
+            (None, None) => a.volatility.partial_cmp(&b.volatility).unwrap(), // Fallback to volatility
+        }
     });
     
     // Target number of positions based on risk tolerance
