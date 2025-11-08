@@ -1,9 +1,60 @@
 use crate::investor::{InvestorProfile, RiskLevel};
 use crate::stocks::Stock;
 
+fn get_first_trading_year(ticker: &str) -> Option<u32> {
+    // Hardcoded first trading years for stocks that frequently cause issues
+    // or don't have data in cache yet
+    let trading_years = [
+        // Recent spinoffs/name changes that may not be valid for older periods
+        ("COR", 2023),  // Cencora (formerly AmerisourceBergen, changed name 2023)
+        ("TECH", 2014), // Bio-Techne
+        ("K", 2012),    // Kellanova (spun from Kellogg 2023)
+        ("DOW", 2019),  // Dow Inc. (spun from DowDuPont)
+        ("DD", 2019),   // DuPont (spun from DowDuPont)
+        
+        // Old established companies  
+        ("PG", 1890), ("JNJ", 1944), ("PFE", 1942), ("XOM", 1882),
+        ("BAC", 1904), ("WFC", 1852), ("IBM", 1911), ("GE", 1892),
+        ("KO", 1919), ("DIS", 1957), ("MCD", 1965), ("CAT", 1929),
+        ("MMM", 1946), ("BA", 1934), ("F", 1956), ("T", 1983),
+        
+        // 1970s-1990s
+        ("AAPL", 1980), ("MSFT", 1986), ("INTC", 1971), ("WMT", 1972),
+        ("CSCO", 1990), ("AMD", 1979), ("ADBE", 1986), ("NVDA", 1999),
+        ("AMZN", 1997), ("BKNG", 1999), ("UPS", 1999), ("PLUG", 1999),
+        
+        // 2000s
+        ("GOOGL", 2004), ("GOOG", 2004), ("VZ", 2000), ("NFLX", 2002),
+        ("CRM", 2004), ("MA", 2006), ("V", 2008), ("FSLR", 2006),
+        ("TSLA", 2010), ("GM", 2010),
+        
+        // 2010s  
+        ("META", 2012), ("ABBV", 2013), ("ZTS", 2013), ("TWTR", 2013),
+        ("KMI", 2011), ("MDLZ", 2012), ("ENPH", 2012),
+        ("SHOP", 2015), ("MTCH", 2015), ("ETSY", 2015),
+        ("TWLO", 2016), ("SNAP", 2017), ("ROKU", 2017), ("OKTA", 2017),
+        ("MRNA", 2018), ("DOCU", 2018), ("VICI", 2018),
+        ("ZM", 2019), ("UBER", 2019), ("LYFT", 2019), ("PINS", 2019),
+        ("DDOG", 2019), ("CRWD", 2019), ("BNTX", 2019),
+        
+        // 2020+
+        ("PLTR", 2020), ("SNOW", 2020), ("ABNB", 2020), ("DASH", 2020),
+        ("RIVN", 2021), ("LCID", 2021), ("SOFI", 2021), ("COIN", 2021),
+        ("RBLX", 2021), ("U", 2021), ("HOOD", 2021),
+    ];
+    
+    trading_years.iter()
+        .find(|(t, _)| *t == ticker)
+        .map(|(_, year)| *year)
+}
+
 pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> Vec<Stock> {
     stocks
         .iter()
+        .filter(|s| {
+            // Filter out tickers with hyphens - they often cause API issues
+            !s.ticker.contains('-')
+        })
         .filter(|s| !profile.should_exclude_sector(&s.sector))
         .filter(|s| {
             // Filter by risk tolerance
@@ -14,11 +65,28 @@ pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> 
             }
         })
         .filter(|s| {
-            // Filter by IPO date - stock must have been trading during investment period
-            if let (Some(start_year), Some(ipo_year)) = (profile.start_year, s.ipo_year) {
-                ipo_year <= start_year
+            // Filter by trading date - stock must have been trading during entire investment period
+            if let Some(start_year) = profile.start_year {
+                // Try cache first
+                if let Some(first_date) = &s.first_trading_date {
+                    // Extract year from first_trading_date (format: YYYY-MM-DD)
+                    if let Some(first_year_str) = first_date.split('-').next() {
+                        if let Ok(first_year) = first_year_str.parse::<u32>() {
+                            // Stock must have started trading before or at start of investment period
+                            return first_year <= start_year;
+                        }
+                    }
+                }
+                
+                // Fallback to hardcoded database
+                if let Some(first_year) = get_first_trading_year(&s.ticker) {
+                    return first_year <= start_year;
+                }
+                
+                // If we have start year but no trading date info at all, be conservative and exclude
+                false
             } else {
-                true // If no date info, include it
+                true // If no investment date info, include it
             }
         })
         .cloned()

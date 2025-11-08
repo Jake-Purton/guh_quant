@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2025-11-08T13:23:58.442446",
+    "generated_at": "2025-11-08T13:55:33.736409",
     "stock_count": 235,
     "sector_keywords": {
       "Technology": [
@@ -104,6 +104,8 @@
       "price": 188.15,
       "sector": "Technology",
       "market_cap": 4580888281088,
+      "first_trading_date": "1999-01-22",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0264
     },
     {
@@ -112,6 +114,8 @@
       "price": 268.47,
       "sector": "Technology",
       "market_cap": 3967007326208,
+      "first_trading_date": "1980-12-12",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0148
     },
     {
@@ -120,6 +124,8 @@
       "price": 496.82,
       "sector": "Technology",
       "market_cap": 3692554092544,
+      "first_trading_date": "1986-03-13",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0117
     },
     {
@@ -128,6 +134,8 @@
       "price": 279.7,
       "sector": "Communication",
       "market_cap": 3369345744896,
+      "first_trading_date": "2004-08-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0179
     },
     {
@@ -136,6 +144,8 @@
       "price": 278.83,
       "sector": "Communication",
       "market_cap": 3369345482752,
+      "first_trading_date": "2004-08-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0185
     },
     {
@@ -144,6 +154,8 @@
       "price": 244.41,
       "sector": "Consumer",
       "market_cap": 2612795801600,
+      "first_trading_date": "1997-05-15",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0292
     },
     {
@@ -152,6 +164,8 @@
       "price": 349.43,
       "sector": "Technology",
       "market_cap": 1650135924736,
+      "first_trading_date": "2009-08-06",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0324
     },
     {
@@ -160,6 +174,8 @@
       "price": 621.71,
       "sector": "Communication",
       "market_cap": 1567037325312,
+      "first_trading_date": "2012-05-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0289
     },
     {
@@ -168,6 +184,8 @@
       "price": 429.52,
       "sector": "Consumer",
       "market_cap": 1428505755648,
+      "first_trading_date": "2010-06-29",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0325
     },
     {
@@ -176,6 +194,8 @@
       "price": 499.06,
       "sector": "Financials",
       "market_cap": 1076732231680,
+      "first_trading_date": "1996-05-09",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0099
     },
     {
@@ -184,6 +204,8 @@
       "price": 314.21,
       "sector": "Financials",
       "market_cap": 855361978368,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0127
     },
     {
@@ -192,6 +214,8 @@
       "price": 924.37,
       "sector": "Healthcare",
       "market_cap": 828657762304,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0178
     },
     {
@@ -200,6 +224,8 @@
       "price": 102.59,
       "sector": "Consumer",
       "market_cap": 817934761984,
+      "first_trading_date": "1972-08-25",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0148
     },
     {
@@ -208,6 +234,8 @@
       "price": 239.26,
       "sector": "Technology",
       "market_cap": 682080665600,
+      "first_trading_date": "1986-03-12",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0315
     },
     {
@@ -216,6 +244,8 @@
       "price": 336.02,
       "sector": "Financials",
       "market_cap": 648484028416,
+      "first_trading_date": "2008-03-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0114
     },
     {
@@ -224,6 +254,8 @@
       "price": 551.97,
       "sector": "Financials",
       "market_cap": 495666724864,
+      "first_trading_date": "2006-05-25",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0118
     },
     {
@@ -232,6 +264,8 @@
       "price": 117.22,
       "sector": "Energy",
       "market_cap": 494316748800,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.011
     },
     {
@@ -240,6 +274,8 @@
       "price": 1103.66,
       "sector": "Communication",
       "market_cap": 467656441856,
+      "first_trading_date": "2002-05-23",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0251
     },
     {
@@ -248,6 +284,8 @@
       "price": 186.57,
       "sector": "Healthcare",
       "market_cap": 449502216192,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0072
     },
     {
@@ -256,15 +294,9 @@
       "price": 177.93,
       "sector": "Technology",
       "market_cap": 424084799488,
+      "first_trading_date": "2020-09-30",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0332
-    },
-    {
-      "ticker": "COST",
-      "name": "Costco Wholesale Corporation",
-      "price": 922.74,
-      "sector": "Consumer",
-      "market_cap": 408939134976,
-      "volatility": 0.0132
     },
     {
       "ticker": "BAC",
@@ -272,6 +304,8 @@
       "price": 53.2,
       "sector": "Financials",
       "market_cap": 388492787712,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0171
     },
     {
@@ -280,6 +314,8 @@
       "price": 219.16,
       "sector": "Healthcare",
       "market_cap": 387340009472,
+      "first_trading_date": "2013-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0137
     },
     {
@@ -288,6 +324,8 @@
       "price": 233.54,
       "sector": "Technology",
       "market_cap": 380212838400,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0404
     },
     {
@@ -296,6 +334,8 @@
       "price": 371.11,
       "sector": "Consumer",
       "market_cap": 369397923840,
+      "first_trading_date": "1981-09-22",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.011
     },
     {
@@ -304,6 +344,8 @@
       "price": 146.98,
       "sector": "Consumer",
       "market_cap": 343453073408,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0092
     },
     {
@@ -312,6 +354,8 @@
       "price": 307.27,
       "sector": "Industrials",
       "market_cap": 324112646144,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0152
     },
     {
@@ -320,6 +364,8 @@
       "price": 155.02,
       "sector": "Energy",
       "market_cap": 309939798016,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0121
     },
     {
@@ -328,6 +374,8 @@
       "price": 70.55,
       "sector": "Consumer",
       "market_cap": 303478538240,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0133
     },
     {
@@ -336,6 +384,8 @@
       "price": 324.21,
       "sector": "Healthcare",
       "market_cap": 293681922048,
+      "first_trading_date": "1984-10-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0153
     },
     {
@@ -344,6 +394,8 @@
       "price": 306.38,
       "sector": "Technology",
       "market_cap": 286384193536,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0227
     },
     {
@@ -352,6 +404,8 @@
       "price": 71.07,
       "sector": "Technology",
       "market_cap": 280067309568,
+      "first_trading_date": "1990-02-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0144
     },
     {
@@ -360,6 +414,8 @@
       "price": 86.04,
       "sector": "Financials",
       "market_cap": 270086832128,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0215
     },
     {
@@ -368,6 +424,8 @@
       "price": 237.92,
       "sector": "Technology",
       "market_cap": 267057119232,
+      "first_trading_date": "1984-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0394
     },
     {
@@ -376,6 +434,8 @@
       "price": 563.1,
       "sector": "Industrials",
       "market_cap": 263800471552,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0319
     },
     {
@@ -384,6 +444,8 @@
       "price": 162.36,
       "sector": "Financials",
       "market_cap": 258040266752,
+      "first_trading_date": "1993-02-23",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0167
     },
     {
@@ -392,6 +454,8 @@
       "price": 368.54,
       "sector": "Financials",
       "market_cap": 253869391872,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0195
     },
     {
@@ -400,6 +464,8 @@
       "price": 153.39,
       "sector": "Consumer",
       "market_cap": 238772813824,
+      "first_trading_date": "2008-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0176
     },
     {
@@ -408,6 +474,8 @@
       "price": 176.97,
       "sector": "Industrials",
       "market_cap": 237276413952,
+      "first_trading_date": "1962-04-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.022
     },
     {
@@ -416,6 +484,8 @@
       "price": 786.34,
       "sector": "Financials",
       "market_cap": 235845795840,
+      "first_trading_date": "1999-05-04",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0155
     },
     {
@@ -424,6 +494,8 @@
       "price": 207.0,
       "sector": "Communication",
       "market_cap": 231530872832,
+      "first_trading_date": "2007-04-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0164
     },
     {
@@ -432,6 +504,8 @@
       "price": 239.88,
       "sector": "Technology",
       "market_cap": 228365762560,
+      "first_trading_date": "2004-06-23",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0251
     },
     {
@@ -440,6 +514,8 @@
       "price": 126.36,
       "sector": "Healthcare",
       "market_cap": 219723857920,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0108
     },
     {
@@ -448,6 +524,8 @@
       "price": 572.41,
       "sector": "Healthcare",
       "market_cap": 215059038208,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0109
     },
     {
@@ -456,6 +534,8 @@
       "price": 86.28,
       "sector": "Healthcare",
       "market_cap": 214148907008,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0135
     },
     {
@@ -464,6 +544,8 @@
       "price": 299.66,
       "sector": "Consumer",
       "market_cap": 213404188672,
+      "first_trading_date": "1966-07-05",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0111
     },
     {
@@ -472,6 +554,8 @@
       "price": 159.35,
       "sector": "Technology",
       "market_cap": 200148385792,
+      "first_trading_date": "1984-05-04",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.032
     },
     {
@@ -480,6 +564,8 @@
       "price": 110.74,
       "sector": "Communication",
       "market_cap": 199103184896,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0104
     },
     {
@@ -488,6 +574,8 @@
       "price": 560.0,
       "sector": "Healthcare",
       "market_cap": 198517800960,
+      "first_trading_date": "2000-06-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0337
     },
     {
@@ -496,6 +584,8 @@
       "price": 152.41,
       "sector": "Technology",
       "market_cap": 197598609408,
+      "first_trading_date": "2015-05-20",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.031
     },
     {
@@ -504,6 +594,8 @@
       "price": 420.51,
       "sector": "Materials",
       "market_cap": 196356702208,
+      "first_trading_date": "1992-06-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0118
     },
     {
@@ -512,6 +604,8 @@
       "price": 142.95,
       "sector": "Consumer",
       "market_cap": 195461267456,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0161
     },
     {
@@ -520,6 +614,8 @@
       "price": 91.99,
       "sector": "Technology",
       "market_cap": 191139610624,
+      "first_trading_date": "2019-05-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0197
     },
     {
@@ -528,6 +624,8 @@
       "price": 230.07,
       "sector": "Technology",
       "market_cap": 183283531776,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0267
     },
     {
@@ -536,6 +634,8 @@
       "price": 170.89,
       "sector": "Technology",
       "market_cap": 183023190016,
+      "first_trading_date": "1991-12-13",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0367
     },
     {
@@ -544,6 +644,8 @@
       "price": 38.13,
       "sector": "Technology",
       "market_cap": 181880094720,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0309
     },
     {
@@ -552,6 +654,8 @@
       "price": 648.85,
       "sector": "Technology",
       "market_cap": 180902608896,
+      "first_trading_date": "1993-03-12",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0142
     },
     {
@@ -560,6 +664,8 @@
       "price": 100.79,
       "sector": "Financials",
       "market_cap": 180340146176,
+      "first_trading_date": "1977-01-03",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0179
     },
     {
@@ -568,6 +674,8 @@
       "price": 145.94,
       "sector": "Financials",
       "market_cap": 179550453760,
+      "first_trading_date": "2007-06-22",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0206
     },
     {
@@ -576,6 +684,8 @@
       "price": 861.87,
       "sector": "Technology",
       "market_cap": 179399114752,
+      "first_trading_date": "2012-06-29",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.019
     },
     {
@@ -584,6 +694,8 @@
       "price": 24.83,
       "sector": "Communication",
       "market_cap": 176031023104,
+      "first_trading_date": "1983-11-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0139
     },
     {
@@ -592,6 +704,8 @@
       "price": 83.93,
       "sector": "Utilities",
       "market_cap": 174793424896,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0124
     },
     {
@@ -600,6 +714,8 @@
       "price": 95.24,
       "sector": "Financials",
       "market_cap": 172881477632,
+      "first_trading_date": "1987-09-22",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0092
     },
     {
@@ -608,6 +724,8 @@
       "price": 320.2,
       "sector": "Healthcare",
       "market_cap": 172421513216,
+      "first_trading_date": "1983-06-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0196
     },
     {
@@ -616,6 +734,8 @@
       "price": 40.03,
       "sector": "Communication",
       "market_cap": 168783511552,
+      "first_trading_date": "1983-11-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0147
     },
     {
@@ -624,6 +744,8 @@
       "price": 1082.2,
       "sector": "Financials",
       "market_cap": 167904313344,
+      "first_trading_date": "1999-10-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0157
     },
     {
@@ -632,6 +754,8 @@
       "price": 144.61,
       "sector": "Consumer",
       "market_cap": 160942080000,
+      "first_trading_date": "1987-06-26",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0104
     },
     {
@@ -640,6 +764,8 @@
       "price": 4940.0,
       "sector": "Consumer",
       "market_cap": 159235047424,
+      "first_trading_date": "1999-03-31",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0177
     },
     {
@@ -648,6 +774,8 @@
       "price": 1193.37,
       "sector": "Technology",
       "market_cap": 156799664128,
+      "first_trading_date": "1980-10-08",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0289
     },
     {
@@ -656,6 +784,8 @@
       "price": 245.76,
       "sector": "Technology",
       "market_cap": 152405327872,
+      "first_trading_date": "2001-07-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.019
     },
     {
@@ -664,6 +794,8 @@
       "price": 496.42,
       "sector": "Financials",
       "market_cap": 150315974656,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.017
     },
     {
@@ -672,6 +804,8 @@
       "price": 209.94,
       "sector": "Healthcare",
       "market_cap": 148291026944,
+      "first_trading_date": "1978-12-29",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0167
     },
     {
@@ -680,6 +814,8 @@
       "price": 100.02,
       "sector": "Healthcare",
       "market_cap": 148273840128,
+      "first_trading_date": "1992-05-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.014
     },
     {
@@ -688,6 +824,8 @@
       "price": 194.61,
       "sector": "Industrials",
       "market_cap": 147922190336,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.022
     },
     {
@@ -696,6 +834,8 @@
       "price": 118.84,
       "sector": "Healthcare",
       "market_cap": 147599278080,
+      "first_trading_date": "1992-01-22",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0155
     },
     {
@@ -704,6 +844,8 @@
       "price": 160.55,
       "sector": "Technology",
       "market_cap": 145879433216,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0205
     },
     {
@@ -712,6 +854,8 @@
       "price": 373.77,
       "sector": "Industrials",
       "market_cap": 145172267008,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0183
     },
     {
@@ -720,6 +864,8 @@
       "price": 212.29,
       "sector": "Technology",
       "market_cap": 143689547776,
+      "first_trading_date": "2012-07-20",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0149
     },
     {
@@ -728,6 +874,8 @@
       "price": 24.43,
       "sector": "Healthcare",
       "market_cap": 138901848064,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0095
     },
     {
@@ -736,6 +884,8 @@
       "price": 217.82,
       "sector": "Financials",
       "market_cap": 138475503616,
+      "first_trading_date": "1994-11-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0217
     },
     {
@@ -744,6 +894,8 @@
       "price": 326.95,
       "sector": "Technology",
       "market_cap": 136861278208,
+      "first_trading_date": "1986-08-13",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0202
     },
     {
@@ -752,6 +904,8 @@
       "price": 356.03,
       "sector": "Healthcare",
       "market_cap": 136154292224,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0141
     },
     {
@@ -760,6 +914,8 @@
       "price": 539.81,
       "sector": "Technology",
       "market_cap": 135468089344,
+      "first_trading_date": "2019-06-12",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0216
     },
     {
@@ -768,6 +924,8 @@
       "price": 221.48,
       "sector": "Industrials",
       "market_cap": 131373268992,
+      "first_trading_date": "1980-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0111
     },
     {
@@ -776,6 +934,8 @@
       "price": 233.16,
       "sector": "Consumer",
       "market_cap": 130761932800,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0113
     },
     {
@@ -784,6 +944,8 @@
       "price": 190.25,
       "sector": "Real Estate",
       "market_cap": 130573918208,
+      "first_trading_date": "1980-03-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0123
     },
     {
@@ -792,6 +954,8 @@
       "price": 217.27,
       "sector": "Financials",
       "market_cap": 127406530560,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0201
     },
     {
@@ -800,6 +964,8 @@
       "price": 467.79,
       "sector": "Industrials",
       "market_cap": 126457397248,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0132
     },
     {
@@ -808,6 +974,8 @@
       "price": 194.07,
       "sector": "Industrials",
       "market_cap": 123212570624,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0207
     },
     {
@@ -816,6 +984,8 @@
       "price": 92.2,
       "sector": "Healthcare",
       "market_cap": 118257197056,
+      "first_trading_date": "1973-05-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0095
     },
     {
@@ -824,6 +994,8 @@
       "price": 125.6,
       "sector": "Real Estate",
       "market_cap": 116665696256,
+      "first_trading_date": "1997-11-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.019
     },
     {
@@ -832,6 +1004,8 @@
       "price": 287.55,
       "sector": "Financials",
       "market_cap": 113165541376,
+      "first_trading_date": "1993-03-25",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0153
     },
     {
@@ -840,6 +1014,8 @@
       "price": 228.48,
       "sector": "Technology",
       "market_cap": 112401973248,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0207
     },
     {
@@ -848,6 +1024,8 @@
       "price": 121.32,
       "sector": "Financials",
       "market_cap": 112286343168,
+      "first_trading_date": "2010-07-15",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.023
     },
     {
@@ -856,6 +1034,8 @@
       "price": 476.61,
       "sector": "Healthcare",
       "market_cap": 108759490560,
+      "first_trading_date": "2011-03-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0148
     },
     {
@@ -864,6 +1044,8 @@
       "price": 86.83,
       "sector": "Energy",
       "market_cap": 107297423360,
+      "first_trading_date": "1981-12-31",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0169
     },
     {
@@ -872,6 +1054,8 @@
       "price": 844.01,
       "sector": "Industrials",
       "market_cap": 106804461568,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.022
     },
     {
@@ -880,6 +1064,8 @@
       "price": 458.35,
       "sector": "Industrials",
       "market_cap": 106061176832,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0117
     },
     {
@@ -888,6 +1074,8 @@
       "price": 851.99,
       "sector": "Healthcare",
       "market_cap": 105158270976,
+      "first_trading_date": "1994-11-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0118
     },
     {
@@ -896,6 +1084,8 @@
       "price": 409.47,
       "sector": "Healthcare",
       "market_cap": 103890247680,
+      "first_trading_date": "1991-07-24",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0108
     },
     {
@@ -904,6 +1094,8 @@
       "price": 91.44,
       "sector": "Utilities",
       "market_cap": 100685037568,
+      "first_trading_date": "1981-12-31",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0102
     },
     {
@@ -912,6 +1104,8 @@
       "price": 78.99,
       "sector": "Healthcare",
       "market_cap": 100272463872,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0146
     },
     {
@@ -920,6 +1114,8 @@
       "price": 276.5,
       "sector": "Financials",
       "market_cap": 99705839616,
+      "first_trading_date": "2002-12-06",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0118
     },
     {
@@ -928,6 +1124,8 @@
       "price": 27.35,
       "sector": "Communication",
       "market_cap": 99660513280,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0178
     },
     {
@@ -936,6 +1134,8 @@
       "price": 58.03,
       "sector": "Consumer",
       "market_cap": 97413308416,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0197
     },
     {
@@ -944,6 +1144,8 @@
       "price": 85.57,
       "sector": "Consumer",
       "market_cap": 97284530176,
+      "first_trading_date": "1992-06-26",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0188
     },
     {
@@ -952,6 +1154,8 @@
       "price": 123.66,
       "sector": "Utilities",
       "market_cap": 96161038336,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0086
     },
     {
@@ -960,6 +1164,8 @@
       "price": 46.69,
       "sector": "Healthcare",
       "market_cap": 95049310208,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0181
     },
     {
@@ -968,6 +1174,8 @@
       "price": 83.39,
       "sector": "Materials",
       "market_cap": 91000422400,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.041
     },
     {
@@ -976,6 +1184,8 @@
       "price": 61.09,
       "sector": "Consumer",
       "market_cap": 90303324160,
+      "first_trading_date": "1980-12-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0179
     },
     {
@@ -984,6 +1194,8 @@
       "price": 262.86,
       "sector": "Technology",
       "market_cap": 89056960512,
+      "first_trading_date": "2020-09-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0207
     },
     {
@@ -992,6 +1204,8 @@
       "price": 325.05,
       "sector": "Technology",
       "market_cap": 88478932992,
+      "first_trading_date": "1987-06-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.019
     },
     {
@@ -1000,6 +1214,8 @@
       "price": 180.05,
       "sector": "Financials",
       "market_cap": 88208244736,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0212
     },
     {
@@ -1008,6 +1224,8 @@
       "price": 204.31,
       "sector": "Consumer",
       "market_cap": 88057307136,
+      "first_trading_date": "2020-12-09",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0428
     },
     {
@@ -1016,6 +1234,8 @@
       "price": 164.84,
       "sector": "Industrials",
       "market_cap": 87567138816,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0223
     },
     {
@@ -1032,6 +1252,8 @@
       "price": 340.16,
       "sector": "Materials",
       "market_cap": 84323459072,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0165
     },
     {
@@ -1040,6 +1262,8 @@
       "price": 309.14,
       "sector": "Financials",
       "market_cap": 83357687808,
+      "first_trading_date": "2021-04-14",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.045
     },
     {
@@ -1048,6 +1272,8 @@
       "price": 177.95,
       "sector": "Real Estate",
       "market_cap": 83306692608,
+      "first_trading_date": "1998-02-27",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0135
     },
     {
@@ -1056,6 +1282,8 @@
       "price": 97.09,
       "sector": "Consumer",
       "market_cap": 82141274112,
+      "first_trading_date": "1993-04-23",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0148
     },
     {
@@ -1064,6 +1292,8 @@
       "price": 232.81,
       "sector": "Technology",
       "market_cap": 81548951552,
+      "first_trading_date": "2019-09-13",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0388
     },
     {
@@ -1072,6 +1302,8 @@
       "price": 95.95,
       "sector": "Industrials",
       "market_cap": 81402593280,
+      "first_trading_date": "1999-11-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0223
     },
     {
@@ -1080,6 +1312,8 @@
       "price": 201.92,
       "sector": "Industrials",
       "market_cap": 81346912256,
+      "first_trading_date": "1988-06-22",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.015
     },
     {
@@ -1088,6 +1322,8 @@
       "price": 568.61,
       "sector": "Industrials",
       "market_cap": 81152057344,
+      "first_trading_date": "1981-12-31",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0113
     },
     {
@@ -1096,6 +1332,8 @@
       "price": 824.75,
       "sector": "Real Estate",
       "market_cap": 80978968576,
+      "first_trading_date": "2000-08-11",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0154
     },
     {
@@ -1104,6 +1342,8 @@
       "price": 291.16,
       "sector": "Consumer",
       "market_cap": 78133305344,
+      "first_trading_date": "1998-03-23",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0189
     },
     {
@@ -1112,6 +1352,8 @@
       "price": 132.37,
       "sector": "Financials",
       "market_cap": 76826107904,
+      "first_trading_date": "2011-03-30",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0274
     },
     {
@@ -1120,6 +1362,8 @@
       "price": 109.64,
       "sector": "Financials",
       "market_cap": 76457353216,
+      "first_trading_date": "1973-05-03",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0118
     },
     {
@@ -1128,6 +1372,8 @@
       "price": 106.84,
       "sector": "Communication",
       "market_cap": 74993721344,
+      "first_trading_date": "2021-03-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0424
     },
     {
@@ -1136,6 +1382,8 @@
       "price": 57.18,
       "sector": "Consumer",
       "market_cap": 73782697984,
+      "first_trading_date": "2001-06-13",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0138
     },
     {
@@ -1144,6 +1392,8 @@
       "price": 47.32,
       "sector": "Financials",
       "market_cap": 73555820544,
+      "first_trading_date": "1973-05-03",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0149
     },
     {
@@ -1152,6 +1402,8 @@
       "price": 120.88,
       "sector": "Consumer",
       "market_cap": 73295560704,
+      "first_trading_date": "2020-12-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0145
     },
     {
@@ -1160,6 +1412,8 @@
       "price": 393.43,
       "sector": "Technology",
       "market_cap": 73079095296,
+      "first_trading_date": "1992-02-26",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0281
     },
     {
@@ -1168,6 +1422,8 @@
       "price": 129.49,
       "sector": "Industrials",
       "market_cap": 72876974080,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0174
     },
     {
@@ -1176,6 +1432,8 @@
       "price": 256.13,
       "sector": "Materials",
       "market_cap": 72545148928,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0167
     },
     {
@@ -1184,6 +1442,8 @@
       "price": 184.2,
       "sector": "Financials",
       "market_cap": 72235589632,
+      "first_trading_date": "1975-11-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0161
     },
     {
@@ -1192,6 +1452,8 @@
       "price": 245.49,
       "sector": "Industrials",
       "market_cap": 71216652288,
+      "first_trading_date": "1973-03-13",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0146
     },
     {
@@ -1200,6 +1462,8 @@
       "price": 264.58,
       "sector": "Healthcare",
       "market_cap": 70676144128,
+      "first_trading_date": "1982-03-31",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0437
     },
     {
@@ -1208,6 +1472,8 @@
       "price": 317.78,
       "sector": "Healthcare",
       "market_cap": 70623035392,
+      "first_trading_date": "2001-10-30",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0121
     },
     {
@@ -1216,6 +1482,8 @@
       "price": 360.7,
       "sector": "Healthcare",
       "market_cap": 69931753472,
+      "first_trading_date": "1995-04-04",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0098
     },
     {
@@ -1224,6 +1492,8 @@
       "price": 183.6,
       "sector": "Real Estate",
       "market_cap": 69250834432,
+      "first_trading_date": "1993-12-14",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0124
     },
     {
@@ -1232,6 +1502,8 @@
       "price": 657.53,
       "sector": "Healthcare",
       "market_cap": 69106057216,
+      "first_trading_date": "1991-04-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.028
     },
     {
@@ -1240,6 +1512,8 @@
       "price": 191.24,
       "sector": "Technology",
       "market_cap": 67062276096,
+      "first_trading_date": "2019-09-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.054
     },
     {
@@ -1248,6 +1522,8 @@
       "price": 70.75,
       "sector": "Consumer",
       "market_cap": 65999937536,
+      "first_trading_date": "2010-11-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0347
     },
     {
@@ -1256,6 +1532,8 @@
       "price": 35.34,
       "sector": "Industrials",
       "market_cap": 65807921152,
+      "first_trading_date": "1980-11-03",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0112
     },
     {
@@ -1264,6 +1542,8 @@
       "price": 473.34,
       "sector": "Industrials",
       "market_cap": 65338081280,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0247
     },
     {
@@ -1272,6 +1552,8 @@
       "price": 121.43,
       "sector": "Utilities",
       "market_cap": 64997302272,
+      "first_trading_date": "1962-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.015
     },
     {
@@ -1280,6 +1562,8 @@
       "price": 284.25,
       "sector": "Industrials",
       "market_cap": 63781896192,
+      "first_trading_date": "1982-06-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0084
     },
     {
@@ -1288,6 +1572,8 @@
       "price": 205.59,
       "sector": "Industrials",
       "market_cap": 63643176960,
+      "first_trading_date": "1998-07-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0117
     },
     {
@@ -1296,6 +1582,8 @@
       "price": 78.76,
       "sector": "Consumer",
       "market_cap": 63485677568,
+      "first_trading_date": "1973-05-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0134
     },
     {
@@ -1304,6 +1592,8 @@
       "price": 66.22,
       "sector": "Financials",
       "market_cap": 61958873088,
+      "first_trading_date": "2015-07-06",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0283
     },
     {
@@ -1312,6 +1602,8 @@
       "price": 3718.26,
       "sector": "Consumer",
       "market_cap": 61844566016,
+      "first_trading_date": "1991-04-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0156
     },
     {
@@ -1320,6 +1612,8 @@
       "price": 262.09,
       "sector": "Industrials",
       "market_cap": 61841563648,
+      "first_trading_date": "1978-04-12",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0167
     },
     {
@@ -1328,6 +1622,8 @@
       "price": 93.72,
       "sector": "Utilities",
       "market_cap": 61169315840,
+      "first_trading_date": "1998-06-29",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0089
     },
     {
@@ -1336,6 +1632,8 @@
       "price": 169.89,
       "sector": "Real Estate",
       "market_cap": 59411304448,
+      "first_trading_date": "2004-10-29",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0178
     },
     {
@@ -1344,6 +1642,8 @@
       "price": 26.55,
       "sector": "Energy",
       "market_cap": 59067383808,
+      "first_trading_date": "2011-02-11",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0143
     },
     {
@@ -1352,6 +1652,8 @@
       "price": 193.76,
       "sector": "Energy",
       "market_cap": 58244730880,
+      "first_trading_date": "2011-06-24",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0228
     },
     {
@@ -1360,6 +1662,8 @@
       "price": 259.74,
       "sector": "Materials",
       "market_cap": 57806077952,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.023
     },
     {
@@ -1368,6 +1672,8 @@
       "price": 105.41,
       "sector": "Energy",
       "market_cap": 57553166336,
+      "first_trading_date": "1989-10-04",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0108
     },
     {
@@ -1376,6 +1682,8 @@
       "price": 44.74,
       "sector": "Financials",
       "market_cap": 57233481728,
+      "first_trading_date": "1980-03-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0199
     },
     {
@@ -1384,6 +1692,8 @@
       "price": 39.81,
       "sector": "Materials",
       "market_cap": 57164398592,
+      "first_trading_date": "1995-07-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0246
     },
     {
@@ -1392,6 +1702,8 @@
       "price": 708.45,
       "sector": "Healthcare",
       "market_cap": 56570675200,
+      "first_trading_date": "1991-06-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0336
     },
     {
@@ -1400,6 +1712,8 @@
       "price": 137.95,
       "sector": "Energy",
       "market_cap": 55582965760,
+      "first_trading_date": "2012-04-12",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0165
     },
     {
@@ -1408,6 +1722,8 @@
       "price": 36.66,
       "sector": "Energy",
       "market_cap": 54767239168,
+      "first_trading_date": "1981-12-31",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0204
     },
     {
@@ -1416,6 +1732,8 @@
       "price": 175.62,
       "sector": "Energy",
       "market_cap": 53565771776,
+      "first_trading_date": "1982-01-04",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0226
     },
     {
@@ -1424,6 +1742,8 @@
       "price": 120.24,
       "sector": "Healthcare",
       "market_cap": 52988952576,
+      "first_trading_date": "2013-02-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0309
     },
     {
@@ -1432,6 +1752,8 @@
       "price": 13.21,
       "sector": "Consumer",
       "market_cap": 52635226112,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0315
     },
     {
@@ -1440,6 +1762,8 @@
       "price": 61.58,
       "sector": "Utilities",
       "market_cap": 52583981056,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0107
     },
     {
@@ -1448,6 +1772,8 @@
       "price": 161.08,
       "sector": "Consumer",
       "market_cap": 52387446784,
+      "first_trading_date": "1985-08-08",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0143
     },
     {
@@ -1456,6 +1782,8 @@
       "price": 56.87,
       "sector": "Real Estate",
       "market_cap": 52315041792,
+      "first_trading_date": "1994-10-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0114
     },
     {
@@ -1464,6 +1792,8 @@
       "price": 98.69,
       "sector": "Industrials",
       "market_cap": 51832418304,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.016
     },
     {
@@ -1472,6 +1802,8 @@
       "price": 320.01,
       "sector": "Technology",
       "market_cap": 50657845248,
+      "first_trading_date": "2018-03-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.018
     },
     {
@@ -1480,6 +1812,8 @@
       "price": 153.88,
       "sector": "Financials",
       "market_cap": 50298621952,
+      "first_trading_date": "2014-05-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0257
     },
     {
@@ -1488,6 +1822,8 @@
       "price": 200.6,
       "sector": "Communication",
       "market_cap": 50030555136,
+      "first_trading_date": "1989-09-20",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0015
     },
     {
@@ -1496,6 +1832,8 @@
       "price": 278.05,
       "sector": "Real Estate",
       "market_cap": 48787488768,
+      "first_trading_date": "1980-11-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0138
     },
     {
@@ -1504,6 +1842,8 @@
       "price": 83.39,
       "sector": "Healthcare",
       "market_cap": 48391221248,
+      "first_trading_date": "2000-03-27",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0173
     },
     {
@@ -1512,6 +1852,8 @@
       "price": 294.86,
       "sector": "Healthcare",
       "market_cap": 48329916416,
+      "first_trading_date": "2013-10-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0151
     },
     {
@@ -1520,6 +1862,8 @@
       "price": 80.91,
       "sector": "Utilities",
       "market_cap": 47861485568,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0081
     },
     {
@@ -1528,6 +1872,8 @@
       "price": 46.21,
       "sector": "Utilities",
       "market_cap": 46593093632,
+      "first_trading_date": "1973-05-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0089
     },
     {
@@ -1536,6 +1882,8 @@
       "price": 232.0,
       "sector": "Communication",
       "market_cap": 42868690944,
+      "first_trading_date": "1997-04-15",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0198
     },
     {
@@ -1544,6 +1892,8 @@
       "price": 144.77,
       "sector": "Consumer",
       "market_cap": 42631172096,
+      "first_trading_date": "1992-06-05",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0183
     },
     {
@@ -1552,6 +1902,8 @@
       "price": 83.31,
       "sector": "Utilities",
       "market_cap": 41584517120,
+      "first_trading_date": "1980-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0147
     },
     {
@@ -1560,6 +1912,8 @@
       "price": 157.83,
       "sector": "Technology",
       "market_cap": 41526824960,
+      "first_trading_date": "2015-12-09",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0332
     },
     {
@@ -1568,6 +1922,8 @@
       "price": 149.12,
       "sector": "Consumer",
       "market_cap": 41386119168,
+      "first_trading_date": "1997-09-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0201
     },
     {
@@ -1576,6 +1932,8 @@
       "price": 41.31,
       "sector": "Energy",
       "market_cap": 40667205632,
+      "first_trading_date": "1981-12-31",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0186
     },
     {
@@ -1584,6 +1942,8 @@
       "price": 30.59,
       "sector": "Consumer",
       "market_cap": 40448483328,
+      "first_trading_date": "2006-01-26",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0416
     },
     {
@@ -1592,6 +1952,8 @@
       "price": 287.3,
       "sector": "Materials",
       "market_cap": 37961207808,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0113
     },
     {
@@ -1600,6 +1962,8 @@
       "price": 83.8,
       "sector": "Consumer",
       "market_cap": 37877600256,
+      "first_trading_date": "1998-09-24",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0386
     },
     {
@@ -1608,6 +1972,8 @@
       "price": 610.64,
       "sector": "Materials",
       "market_cap": 36825956352,
+      "first_trading_date": "1994-02-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0126
     },
     {
@@ -1616,6 +1982,8 @@
       "price": 112.87,
       "sector": "Utilities",
       "market_cap": 36715962368,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0099
     },
     {
@@ -1624,6 +1992,8 @@
       "price": 251.49,
       "sector": "Healthcare",
       "market_cap": 36709060608,
+      "first_trading_date": "1995-06-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0107
     },
     {
@@ -1632,6 +2002,8 @@
       "price": 210.46,
       "sector": "Healthcare",
       "market_cap": 35841339392,
+      "first_trading_date": "2013-05-09",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.015
     },
     {
@@ -1640,6 +2012,8 @@
       "price": 103.85,
       "sector": "Consumer",
       "market_cap": 34463498240,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0341
     },
     {
@@ -1648,6 +2022,8 @@
       "price": 28.21,
       "sector": "Financials",
       "market_cap": 34018525184,
+      "first_trading_date": "2021-01-04",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0468
     },
     {
@@ -1656,6 +2032,8 @@
       "price": 144.31,
       "sector": "Materials",
       "market_cap": 33124257792,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0244
     },
     {
@@ -1664,6 +2042,8 @@
       "price": 118.31,
       "sector": "Financials",
       "market_cap": 33045454848,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0193
     },
     {
@@ -1672,6 +2052,8 @@
       "price": 30.34,
       "sector": "Real Estate",
       "market_cap": 32427737088,
+      "first_trading_date": "2018-01-02",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.011
     },
     {
@@ -1680,6 +2062,8 @@
       "price": 121.55,
       "sector": "Consumer",
       "market_cap": 30776107008,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0151
     },
     {
@@ -1688,6 +2072,8 @@
       "price": 56.28,
       "sector": "Technology",
       "market_cap": 30416347136,
+      "first_trading_date": "1993-03-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0318
     },
     {
@@ -1696,6 +2082,8 @@
       "price": 361.04,
       "sector": "Technology",
       "market_cap": 29373093888,
+      "first_trading_date": "2017-10-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0212
     },
     {
@@ -1704,6 +2092,8 @@
       "price": 83.34,
       "sector": "Consumer",
       "market_cap": 28996704256,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.001
     },
     {
@@ -1712,6 +2102,8 @@
       "price": 267.64,
       "sector": "Technology",
       "market_cap": 28719953920,
+      "first_trading_date": "2006-11-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0441
     },
     {
@@ -1720,6 +2112,8 @@
       "price": 73.04,
       "sector": "Utilities",
       "market_cap": 27403816960,
+      "first_trading_date": "1973-02-21",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0122
     },
     {
@@ -1728,6 +2122,8 @@
       "price": 177.38,
       "sector": "Real Estate",
       "market_cap": 25116110848,
+      "first_trading_date": "1994-03-11",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0126
     },
     {
@@ -1736,6 +2132,8 @@
       "price": 46.88,
       "sector": "Consumer",
       "market_cap": 25006561280,
+      "first_trading_date": "1980-03-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0145
     },
     {
@@ -1744,6 +2142,8 @@
       "price": 103.14,
       "sector": "Healthcare",
       "market_cap": 24800575488,
+      "first_trading_date": "2019-10-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0121
     },
     {
@@ -1752,6 +2152,8 @@
       "price": 81.69,
       "sector": "Technology",
       "market_cap": 24448950272,
+      "first_trading_date": "2019-04-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0184
     },
     {
@@ -1760,6 +2162,8 @@
       "price": 73.62,
       "sector": "Technology",
       "market_cap": 24300021760,
+      "first_trading_date": "2021-01-13",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0471
     },
     {
@@ -1768,6 +2172,8 @@
       "price": 59.71,
       "sector": "Real Estate",
       "market_cap": 23414593536,
+      "first_trading_date": "1993-08-12",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0149
     },
     {
@@ -1776,6 +2182,8 @@
       "price": 155.51,
       "sector": "Healthcare",
       "market_cap": 22813669376,
+      "first_trading_date": "1991-09-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0154
     },
     {
@@ -1784,6 +2192,8 @@
       "price": 371.69,
       "sector": "Healthcare",
       "market_cap": 22128467968,
+      "first_trading_date": "1995-11-17",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0178
     },
     {
@@ -1792,6 +2202,8 @@
       "price": 55.0,
       "sector": "Healthcare",
       "market_cap": 21450893312,
+      "first_trading_date": "2005-04-14",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0378
     },
     {
@@ -1800,6 +2212,8 @@
       "price": 197.4,
       "sector": "Real Estate",
       "market_cap": 21035536384,
+      "first_trading_date": "1999-06-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0105
     },
     {
@@ -1808,6 +2222,8 @@
       "price": 127.68,
       "sector": "Technology",
       "market_cap": 19357925376,
+      "first_trading_date": "2016-06-23",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0478
     },
     {
@@ -1816,6 +2232,8 @@
       "price": 52.43,
       "sector": "Financials",
       "market_cap": 18880043008,
+      "first_trading_date": "2012-05-03",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0237
     },
     {
@@ -1824,6 +2242,8 @@
       "price": 15.23,
       "sector": "Consumer",
       "market_cap": 18670655488,
+      "first_trading_date": "2021-11-10",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0563
     },
     {
@@ -1832,6 +2252,8 @@
       "price": 121.9,
       "sector": "Healthcare",
       "market_cap": 18626320384,
+      "first_trading_date": "2000-07-28",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0589
     },
     {
@@ -1840,6 +2262,8 @@
       "price": 88.5,
       "sector": "Healthcare",
       "market_cap": 17539067904,
+      "first_trading_date": "2001-07-25",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0361
     },
     {
@@ -1848,6 +2272,8 @@
       "price": 40.03,
       "sector": "Technology",
       "market_cap": 17129350144,
+      "first_trading_date": "2020-09-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0563
     },
     {
@@ -1856,6 +2282,8 @@
       "price": 39.8,
       "sector": "Materials",
       "market_cap": 16675217408,
+      "first_trading_date": "1972-06-01",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0268
     },
     {
@@ -1864,6 +2292,8 @@
       "price": 22.29,
       "sector": "Materials",
       "market_cap": 15843005440,
+      "first_trading_date": "2019-03-20",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0378
     },
     {
@@ -1872,6 +2302,8 @@
       "price": 102.3,
       "sector": "Communication",
       "market_cap": 15115006976,
+      "first_trading_date": "2017-09-28",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.027
     },
     {
@@ -1880,6 +2312,8 @@
       "price": 85.21,
       "sector": "Technology",
       "market_cap": 15021320192,
+      "first_trading_date": "2017-04-07",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0197
     },
     {
@@ -1888,6 +2322,8 @@
       "price": 69.7,
       "sector": "Technology",
       "market_cap": 14016956416,
+      "first_trading_date": "2018-04-27",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0211
     },
     {
@@ -1896,6 +2332,8 @@
       "price": 24.54,
       "sector": "Healthcare",
       "market_cap": 9584851968,
+      "first_trading_date": "2018-12-07",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0456
     },
     {
@@ -1904,6 +2342,8 @@
       "price": 90.02,
       "sector": "Technology",
       "market_cap": 9566644224,
+      "first_trading_date": "2018-10-05",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0241
     },
     {
@@ -1912,6 +2352,8 @@
       "price": 18.0,
       "sector": "Healthcare",
       "market_cap": 9253004288,
+      "first_trading_date": "1981-10-27",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0335
     },
     {
@@ -1920,6 +2362,8 @@
       "price": 57.41,
       "sector": "Healthcare",
       "market_cap": 8945207296,
+      "first_trading_date": "1989-02-09",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0195
     },
     {
@@ -1928,6 +2372,8 @@
       "price": 22.04,
       "sector": "Technology",
       "market_cap": 8801748992,
+      "first_trading_date": "2019-03-29",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0334
     },
     {
@@ -1936,6 +2382,8 @@
       "price": 32.87,
       "sector": "Communication",
       "market_cap": 7759626752,
+      "first_trading_date": "1993-01-19",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0187
     },
     {
@@ -1944,6 +2392,8 @@
       "price": 59.09,
       "sector": "Consumer",
       "market_cap": 5832538112,
+      "first_trading_date": "2015-04-16",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0402
     },
     {
@@ -1952,6 +2402,8 @@
       "price": 17.28,
       "sector": "Consumer",
       "market_cap": 5601631232,
+      "first_trading_date": "2020-09-18",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0316
     },
     {
@@ -1960,6 +2412,8 @@
       "price": 49.48,
       "sector": "Technology",
       "market_cap": 4527031296,
+      "first_trading_date": "2021-03-24",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0543
     },
     {
@@ -1968,6 +2422,8 @@
       "price": 30.22,
       "sector": "Technology",
       "market_cap": 3954580480,
+      "first_trading_date": "2012-03-30",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0487
     },
     {
@@ -1976,7 +2432,19 @@
       "price": 2.65,
       "sector": "Industrials",
       "market_cap": 3086548736,
+      "first_trading_date": "1999-10-29",
+      "last_trading_date": "2025-11-07",
       "volatility": 0.0586
+    },
+    {
+      "ticker": "COST",
+      "name": "COST",
+      "price": 922.74,
+      "sector": "Technology",
+      "market_cap": 0,
+      "first_trading_date": "1986-07-09",
+      "last_trading_date": "2025-11-07",
+      "volatility": 0.0132
     }
   ]
 }

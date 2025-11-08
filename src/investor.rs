@@ -40,7 +40,7 @@ impl InvestorProfile {
         let budget = Self::extract_money(&msg_lower, r"budget of \$([0-9,]+)")
             .or_else(|| Self::extract_money(&msg_lower, r"total budget of \$([0-9,]+)"))
             .or_else(|| Self::extract_money(&msg_lower, r"\$([0-9,]+)"))
-            .ok_or("Could not parse budget")?;
+            .unwrap_or(1000000000000.0);
 
         // Extract name (first two capitalized words)
         let name = msg

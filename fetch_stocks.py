@@ -133,6 +133,18 @@ def get_stock_info(ticker: str) -> Optional[Dict]:
         # Get current price from most recent day
         price = hist['Close'].iloc[-1]
         
+        # Try to get the full history to determine first trading date
+        first_trading_date = None
+        last_trading_date = None
+        try:
+            # Get maximum period available
+            full_hist = stock.history(period="max")
+            if not full_hist.empty:
+                first_trading_date = full_hist.index[0].strftime('%Y-%m-%d')
+                last_trading_date = full_hist.index[-1].strftime('%Y-%m-%d')
+        except:
+            pass
+        
         # Try to get info, but don't fail if it's unavailable
         try:
             info = stock.info
@@ -148,13 +160,21 @@ def get_stock_info(ticker: str) -> Optional[Dict]:
         # Map to standardized sector names
         sector = standardize_sector(sector)
         
-        return {
+        result = {
             'ticker': ticker,
             'name': name,
             'price': round(float(price), 2),
             'sector': sector,
             'market_cap': int(market_cap) if market_cap else 0,
         }
+        
+        # Add trading dates if available
+        if first_trading_date:
+            result['first_trading_date'] = first_trading_date
+        if last_trading_date:
+            result['last_trading_date'] = last_trading_date
+        
+        return result
     except Exception as e:
         print(f"  Error: {e}")
         return None

@@ -1,59 +1,6 @@
+$SPLK: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+$CTLT: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
 $SQ: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
-============================================================
-US EQUITIES DATA FETCHER
-============================================================
-
-🔍 Fetching ticker lists...
-Error fetching S&P 500: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1018)>
-Error fetching NASDAQ 100: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1018)>
-📋 Found 27 unique tickers
-🔄 Fetching data for up to 1000 stocks...
-
-[1/27] NET... ✓ $232.81 (vol: 3.88%)
-[2/27] VRTX... ✓ $409.47 (vol: 1.08%)
-[3/27] MRNA... ✓ $24.54 (vol: 4.56%)
-[4/27] COIN... ✓ $309.14 (vol: 4.50%)
-[5/27] PYPL... ✓ $66.22 (vol: 2.83%)
-[6/27] ZS... ✓ $320.01 (vol: 1.80%)
-[7/27] AFRM... ✓ $73.62 (vol: 4.71%)
-[8/27] PLUG... ✓ $2.65 (vol: 5.86%)
-[9/27] DASH... ✓ $204.31 (vol: 4.28%)
-[10/27] RIVN... ✓ $15.23 (vol: 5.63%)
-[11/27] UBER... ✓ $91.99 (vol: 1.97%)
-[12/27] SQ... ❌
-[13/27] SNOW... ✓ $262.86 (vol: 2.07%)
-[14/27] PLTR... ✓ $177.93 (vol: 3.32%)
-[15/27] FSLR... ✓ $267.64 (vol: 4.41%)
-[16/27] SOFI... ✓ $28.21 (vol: 4.68%)
-[17/27] DDOG... ✓ $191.24 (vol: 5.40%)
-[18/27] CRWD... ✓ $539.81 (vol: 2.16%)
-[19/27] U... ✓ $40.03 (vol: 5.63%)
-[20/27] BNTX... ✓ $103.14 (vol: 1.21%)
-[21/27] BIIB... ✓ $155.51 (vol: 1.54%)
-[22/27] LYFT... ✓ $22.04 (vol: 3.34%)
-[23/27] ENPH... ✓ $30.22 (vol: 4.87%)
-[24/27] ABNB... ✓ $120.88 (vol: 1.45%)
-[25/27] RBLX... ✓ $106.84 (vol: 4.24%)
-[26/27] REGN... ✓ $657.53 (vol: 2.80%)
-[27/27] LCID... ✓ $17.28 (vol: 3.16%)
-
-✅ Successfully fetched 26 stocks
-❌ Failed: 1 stocks
-   Examples: SQ
-
-💾 Saved to stocks_cache.json
-📊 Total stocks: 26
-
-📈 Stocks by sector:
-  Technology: 12
-  Healthcare: 5
-  Consumer: 4
-  Financials: 3
-  Industrials: 1
-  Communication: 1
-
-============================================================
-✅ COMPLETE
-============================================================
-
-You can now use 'stocks_cache.json' in your Rust application!
+$ICE: possibly delisted; no price data found  (1d 1926-12-03 -> 2025-11-08)
+$ZI: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+$HES: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
