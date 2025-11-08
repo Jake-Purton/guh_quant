@@ -1,6 +1,10 @@
 use crate::investor::{InvestorProfile, RiskLevel};
 use crate::stocks::Stock;
 use crate::points::PointsStore;
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::time::{SystemTime, UNIX_EPOCH};
+use serde_json::json;
 
 // Learning / weighting configuration
 const RETURN_WEIGHT: f64 = 0.7; // weight given to historical return
@@ -182,11 +186,50 @@ fn was_trading_during_period(stock: &Stock, start_year: Option<u32>) -> bool {
 
 /// Filter stocks based on investor profile requirements
 pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> Vec<Stock> {
+    use once_cell::sync::OnceCell;
+    use std::collections::HashMap;
+
+    static SECTOR_OVERRIDES: OnceCell<HashMap<String, Vec<String>>> = OnceCell::new();
+
+    fn get_sector_overrides() -> &'static HashMap<String, Vec<String>> {
+        SECTOR_OVERRIDES.get_or_init(|| {
+            let path = "sector_overrides.json";
+            match std::fs::read_to_string(path) {
+                Ok(s) => match serde_json::from_str::<HashMap<String, Vec<String>>>(&s) {
+                    Ok(map) => map,
+                    Err(e) => {
+                        eprintln!("[WARN] Failed to parse {}: {} - using empty overrides", path, e);
+                        HashMap::new()
+                    }
+                },
+                Err(_) => {
+                    eprintln!("[WARN] Could not read {} - using empty overrides", path);
+                    HashMap::new()
+                }
+            }
+        })
+    }
+
+    let overrides = get_sector_overrides();
+
     stocks
         .iter()
         .filter(|s| !is_ticker_excluded(&s.ticker))
-    // Extended exclusion: checks sector and stock name with synonyms
-    .filter(|s| !profile.should_exclude_sector_extended(&s.sector, &s.name))
+        // If any effective sector matches the exclusion list, drop the stock.
+        .filter(|s| {
+            // Build effective sectors: original sectors plus overrides for this ticker
+            let mut eff: Vec<String> = s.sectors.iter().cloned().collect();
+            if let Some(extra) = overrides.get(&s.ticker) {
+                for ex in extra.iter() {
+                    if !eff.iter().any(|e| e.eq_ignore_ascii_case(ex)) {
+                        eff.push(ex.to_string());
+                    }
+                }
+            }
+
+            // If any effective sector triggers exclusion, filter out
+            !eff.iter().any(|sec| profile.should_exclude_sector_extended(sec, &s.name))
+        })
         .filter(|s| matches_risk_tolerance(s.volatility, profile.risk_tolerance))
         .filter(|s| was_trading_during_period(s, profile.start_year))
         .cloned()
@@ -417,8 +460,14 @@ fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usi
     }
 
     // FINAL SAFETY CHECK: Validate budget
+    // If the portfolio would have been over budget we record a strong
+    // negative learning signal (-500 points) for the attempted tickers so
+    // the learner learns to avoid allocations that exceed budget.
+    let portfolio_before_final = portfolio.clone();
+    let mut overbudget = false;
     if !validate_budget(&portfolio, stocks, budget) {
         eprintln!("[EMERGENCY] Force-fitting portfolio within budget...");
+        overbudget = true;
         force_within_budget(&mut portfolio, stocks, budget);
     }
 
@@ -429,6 +478,35 @@ fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usi
             // Convert percent-ish returns to a modest delta; scale by qty
             let delta = (ret_pct / 100.0) * (*qty as f64) * 2.0; // tunable
             points.add_score(ticker, delta);
+        }
+    }
+
+    // If we detected an overbudget condition earlier, apply a heavy penalty
+    // to all tickers that were part of the attempted portfolio. This signals
+    // the learner that producing portfolios which exceed budget is very bad.
+    if overbudget {
+        // Write an overbudget event to `overbudget_events.jsonl` for offline
+        // analysis. Format: JSONL with fields {ts, budget, total_cost, over_by, portfolio: [{ticker, quantity}, ...]}
+        let total_before = calculate_portfolio_cost(&portfolio_before_final, stocks);
+        let over_by = (total_before - budget).max(0.0);
+        let ts = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        let port_json: Vec<serde_json::Value> = portfolio_before_final.iter().map(|(t, q)| json!({"ticker": t, "quantity": q})).collect();
+        let entry = json!({
+            "ts": ts,
+            "budget": budget,
+            "total_cost": total_before,
+            "over_by": over_by,
+            "portfolio": port_json
+        });
+        if let Ok(mut f) = OpenOptions::new().create(true).append(true).open("overbudget_events.jsonl") {
+            let _ = f.write_all(format!("{}\n", entry.to_string()).as_bytes());
+        } else {
+            eprintln!("[WARN] Could not open overbudget_events.jsonl for append");
+        }
+
+        for (ticker, _qty) in &portfolio_before_final {
+            eprintln!("[POINTS] Applying overbudget penalty (-500) to {}", ticker);
+            points.add_score(ticker, -500.0);
         }
     }
 

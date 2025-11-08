@@ -14,7 +14,8 @@ use std::collections::HashMap;
 pub struct Stock {
     pub ticker: String,
     pub price: f64,
-    pub sector: String,
+    #[serde(default, deserialize_with = "deserialize_sectors")]
+    pub sectors: Vec<String>,
     pub volatility: f64,
     #[serde(default)]
     pub name: String,
@@ -60,6 +61,26 @@ struct HistoricalData {
     #[allow(dead_code)]
     end_price: f64,
     return_pct: f64,
+}
+
+// Helper to allow `sector` to be either a string or an array in the cache JSON.
+fn deserialize_sectors<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    use serde::Deserialize;
+    use serde_json::Value;
+
+    let v = Value::deserialize(deserializer).map_err(serde::de::Error::custom)?;
+    match v {
+        Value::String(s) => Ok(vec![s]),
+        Value::Array(arr) => Ok(arr.into_iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect()),
+        Value::Null => Ok(Vec::new()),
+        other => {
+            // Fallback: try to stringify
+            Ok(vec![other.to_string()])
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

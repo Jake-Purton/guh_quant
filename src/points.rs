@@ -45,12 +45,12 @@ impl PointsStore {
         *self.scores.get(ticker).unwrap_or(&0.0)
     }
 
-    /// Add (or subtract) points for a ticker. Scores are clamped to >= 0.
+    /// Add (or subtract) points for a ticker. Scores may be negative to record
+    /// strong penalties (e.g. budget breaches).
     pub fn add_score(&mut self, ticker: &str, delta: f64) {
         let entry = self.scores.entry(ticker.to_string()).or_insert(0.0);
         let old = *entry;
-        let mut new = old + delta;
-        if new < 0.0 { new = 0.0; }
+        let new = old + delta;
         *entry = new;
 
         // Log when a negative delta was applied or the score decreased
