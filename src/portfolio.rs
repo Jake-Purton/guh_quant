@@ -185,7 +185,8 @@ pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> 
     stocks
         .iter()
         .filter(|s| !is_ticker_excluded(&s.ticker))
-        .filter(|s| !profile.should_exclude_sector(&s.sector))
+    // Extended exclusion: checks sector and stock name with synonyms
+    .filter(|s| !profile.should_exclude_sector_extended(&s.sector, &s.name))
         .filter(|s| matches_risk_tolerance(s.volatility, profile.risk_tolerance))
         .filter(|s| was_trading_during_period(s, profile.start_year))
         .cloned()

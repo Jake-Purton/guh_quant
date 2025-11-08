@@ -154,4 +154,64 @@ impl InvestorProfile {
             .iter()
             .any(|s| s.eq_ignore_ascii_case(sector))
     }
+
+    /// Extended exclusion check: matches by exact sector, substrings, stock name,
+    /// and a small synonym map so "Technology" will match "Software", "Internet",
+    /// "Semiconductors", etc. This is conservative: if any excluded term appears
+    /// in the stock sector or name we treat it as excluded.
+    pub fn should_exclude_sector_extended(&self, sector: &str, stock_name: &str) -> bool {
+        if self.excluded_sectors.is_empty() {
+            return false;
+        }
+
+        let sector_low = sector.to_ascii_lowercase();
+        let name_low = stock_name.to_ascii_lowercase();
+
+        for ex in &self.excluded_sectors {
+            let ex_low = ex.to_ascii_lowercase();
+
+            // Exact match or case-insensitive equality
+            if sector_low == ex_low || ex_low == name_low {
+                return true;
+            }
+
+            // Substring match in sector or stock name
+            if sector_low.contains(&ex_low) || name_low.contains(&ex_low) {
+                return true;
+            }
+
+            // Small synonyms map for common sector aliases
+            match ex_low.as_str() {
+                "technology" | "tech" => {
+                    if sector_low.contains("software")
+                        || sector_low.contains("semicon")
+                        || sector_low.contains("internet")
+                        || sector_low.contains("hardware")
+                        || sector_low.contains("electronic")
+                        || name_low.contains("tech")
+                    {
+                        return true;
+                    }
+                }
+                "manufacturing" => {
+                    if sector_low.contains("industrial")
+                        || sector_low.contains("manufactur")
+                    {
+                        return true;
+                    }
+                }
+                "crypto" | "crypto assets" | "cryptocurrency" => {
+                    if sector_low.contains("crypto")
+                        || sector_low.contains("blockchain")
+                        || name_low.contains("coin")
+                    {
+                        return true;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        false
+    }
 }
