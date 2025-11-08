@@ -3,4 +3,8 @@
 // risk: 32.48494259723801
 // no points: 2.0089826318485255
 // no -ve returns: 30.19092492334851
-//morew dist: 56.21827755638151
+//morew dist: 33.35514130247353
+//change algo: 6.6819975652084125
+// avoid.com bubble + add reinforcment learning: 43.665186210465556
+// after points heuristic: 58.218114674676784
+// new alg: -5.512536619310968

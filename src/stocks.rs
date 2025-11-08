@@ -118,35 +118,35 @@ impl Stock {
 }
 
 pub fn load_stocks_from_cache(cache_file: &str) -> Result<Vec<Stock>, Box<dyn Error>> {
-    println!("[CACHE] Loading stocks from cache: {}", cache_file);
+    // println!("[CACHE] Loading stocks from cache: {}", cache_file);
     
     let contents = fs::read_to_string(cache_file)
         .map_err(|e| format!("Failed to read cache file '{}': {}. Run fetch_stocks.py first!", cache_file, e))?;
     
     let cache: StockCache = serde_json::from_str(&contents)?;
     
-    println!("[CACHE] Loaded {} stocks from cache (generated: {})", 
-             cache.stocks.len(), 
-             cache.metadata.generated_at);
+    // println!("[CACHE] Loaded {} stocks from cache (generated: {})", 
+            //  cache.stocks.len(), 
+            //  cache.metadata.generated_at);
     
     // Check for new monthly prices format (preferred)
     if let Some(monthly_data) = cache.monthly_prices {
-        println!("[CACHE] Using MONTHLY price format - {} stocks with monthly data", monthly_data.len());
+        // println!("[CACHE] Using MONTHLY price format - {} stocks with monthly data", monthly_data.len());
         let total_datapoints: usize = monthly_data.values().map(|d| d.data_points).sum();
-        println!("[CACHE] Total monthly datapoints: {}", total_datapoints);
+        // println!("[CACHE] Total monthly datapoints: {}", total_datapoints);
         unsafe {
             MONTHLY_PRICES_CACHE = Some(monthly_data);
         }
     } 
     // Fallback to old historical periods format
     else if let Some(periods) = cache.historical_periods {
-        println!("[CACHE] Using legacy PERIOD format - {} historical periods", periods.len());
-        println!("[WARN] Consider running 'python3 fetch_monthly_cache.py' for better accuracy!");
+        // println!("[CACHE] Using legacy PERIOD format - {} historical periods", periods.len());
+        // println!("[WARN] Consider running 'python3 fetch_monthly_cache.py' for better accuracy!");
         unsafe {
             HISTORICAL_PERIODS_CACHE = Some(periods);
         }
     } else {
-        println!("[WARN] No historical data in cache - will use API fallback");
+        // println!("[WARN] No historical data in cache - will use API fallback");
     }
     
     Ok(cache.stocks)
@@ -155,20 +155,20 @@ pub fn load_stocks_from_cache(cache_file: &str) -> Result<Vec<Stock>, Box<dyn Er
 pub async fn prefetch_all_stocks() -> Result<Vec<Stock>, Box<dyn Error>> {
     // Try monthly cache first (preferred, faster, more accurate)
     if let Ok(stocks) = load_stocks_from_cache("stocks_cache_monthly.json") {
-        println!("[CACHE] Using monthly price cache (optimal)\n");
+        // println!("[CACHE] Using monthly price cache (optimal)\n");
         return Ok(stocks);
     }
     
     // Fallback to legacy cache
     match load_stocks_from_cache("stocks_cache.json") {
         Ok(stocks) => {
-            println!("[CACHE] Using legacy period cache\n");
+            // println!("[CACHE] Using legacy period cache\n");
             Ok(stocks)
         }
         Err(e) => {
-            println!("[WARN] No cache found: {}", e);
-            println!("[INFO] Run 'python3 fetch_monthly_cache.py' for best performance");
-            println!("[INFO] Or run 'python3 fetch_stocks.py' for legacy cache\n");
+            // println!("[WARN] No cache found: {}", e);
+            // println!("[INFO] Run 'python3 fetch_monthly_cache.py' for best performance");
+            // println!("[INFO] Or run 'python3 fetch_stocks.py' for legacy cache\n");
             Err(e)
         }
     }
@@ -252,7 +252,7 @@ fn fetch_from_monthly_cache(stocks: &mut [Stock], start_date: &str, end_date: &s
         }
     }
     
-    println!("[CACHE] Monthly lookup: {} hits, {} misses", hits, misses);
+    // println!("[CACHE] Monthly lookup: {} hits, {} misses", hits, misses);
     
     Ok(hits > 0)
 }

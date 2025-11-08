@@ -10,6 +10,8 @@ use std::error::Error;
 use investor::InvestorProfile;
 use stocks::{Stock, prefetch_all_stocks, fetch_historical_returns};
 use portfolio::{filter_stocks_by_profile, build_portfolio, BUDGET_SPEND_FRACTION};
+use portfolio::volatility_bucket;
+use points::PointsStore;
 use std::collections::{HashMap, HashSet};
 use std::fs::OpenOptions;
 use std::io::Write;
@@ -18,6 +20,96 @@ use regex::Regex;
 const URL: &str = "http://www.prism-challenge.com";
 const PORT: u16 = 8082;
 const TEAM_API_CODE: &str = "f7f47b3680640b753e6cccfd14bbca89";
+// Minimum expected client worth (in 'points') below which we will skip the request.
+// Tune this constant to be more or less aggressive about skipping low-value clients.
+const MIN_EXPECTED_POINTS: f64 = 20.0; // suggested starting threshold (near mean_expected ~90)
+
+// Linear surrogate predictor default coefficients exported from `linear_surrogate.json`.
+// Feature order: [budget_log, eligible, period, avg_vol, avg_logcap, avg_pt, psize, risk_cons, risk_mod, risk_aggr]
+const SURROGATE_INTERCEPT: f64 = 97.32438057349923;
+const SURROGATE_COEFFS: [f64; 10] = [
+    13.874491883091332, // budget_log
+    0.8099161078085209, // eligible
+    -0.0016355332571995223, // period
+    -1210.6415214918222, // avg_vol (note large negative due to scale)
+    -24.202314848774293, // avg_logcap
+    2.5531580924259565, // avg_pt
+    1.9513411424118705, // psize
+    -0.13083387343613717, // risk_cons
+    5.4051113479713795, // risk_mod
+    -5.274277474537541, // risk_aggr
+];
+
+#[derive(Debug, Clone)]
+struct LinearSurrogate {
+    intercept: f64,
+    coeffs: [f64; 10],
+}
+
+impl LinearSurrogate {
+    fn default() -> Self {
+        Self { intercept: SURROGATE_INTERCEPT, coeffs: SURROGATE_COEFFS }
+    }
+}
+
+/// Attempt to load a JSON file with keys {intercept, coefficients} where coefficients is an array of 10 numbers.
+fn load_linear_surrogate(path: &str) -> Option<LinearSurrogate> {
+    match std::fs::read_to_string(path) {
+        Ok(s) => {
+            match serde_json::from_str::<serde_json::Value>(&s) {
+                Ok(v) => {
+                    let intercept = v.get("intercept").and_then(|x| x.as_f64()).unwrap_or(SURROGATE_INTERCEPT);
+                    if let Some(arr) = v.get("coefficients").and_then(|c| c.as_array()) {
+                        if arr.len() == 10 {
+                            let mut coeffs = [0.0f64; 10];
+                            for (i, item) in arr.iter().enumerate() {
+                                coeffs[i] = item.as_f64().unwrap_or(0.0);
+                            }
+                            return Some(LinearSurrogate { intercept, coeffs });
+                        }
+                    }
+                    None
+                }
+                Err(_) => None,
+            }
+        }
+        Err(_) => None,
+    }
+}
+
+/// Predict points using the given linear surrogate and feature vector.
+fn predict_points_surrogate(sur: &LinearSurrogate,
+    budget: f64,
+    eligible_count: usize,
+    period_years: f64,
+    avg_vol: f64,
+    avg_logcap: f64,
+    avg_pts_score: f64,
+    psize: f64,
+    risk: &investor::RiskLevel,
+) -> f64 {
+    let budget_log = budget.max(0.0).ln_1p();
+    let eligible = eligible_count as f64;
+    let period = period_years;
+    let x = [
+        budget_log,
+        eligible,
+        period,
+        avg_vol,
+        avg_logcap,
+        avg_pts_score,
+        psize,
+        if matches!(risk, investor::RiskLevel::Conservative) { 1.0 } else { 0.0 },
+        if matches!(risk, investor::RiskLevel::Moderate) { 1.0 } else { 0.0 },
+        if matches!(risk, investor::RiskLevel::Aggressive) { 1.0 } else { 0.0 },
+    ];
+
+    let mut sum = sur.intercept;
+    for i in 0..10 {
+        sum += sur.coeffs[i] * x[i];
+    }
+    sum
+}
 
 // API Functions
 async fn send_get_request(path: &str) -> Result<String, Box<dyn Error>> {
@@ -69,7 +161,7 @@ async fn get_context() -> Result<String, Box<dyn Error>> {
             Ok(response) => return Ok(response),
             Err(e) => {
                 if attempt < 3 {
-                    eprintln!("[WARN] Network error (attempt {}): {}. Retrying...", attempt, e);
+                    // eprintln!("[WARN] Network error (attempt {}): {}. Retrying...", attempt, e);
                     tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
                 } else {
                     return Err(e);
@@ -100,6 +192,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     println!("[INFO] Loaded {} stocks from cache\n", stock_metadata.len());
 
+    // Load linear surrogate coefficients from disk if present. This lets you update
+    // the heuristic by replacing `linear_surrogate.json` without recompiling.
+    let surrogate: LinearSurrogate = match load_linear_surrogate("linear_surrogate.json") {
+        Some(s) => {
+            println!("[INFO] Loaded linear_surrogate.json with intercept={:.3}", s.intercept);
+            s
+        }
+        None => {
+            println!("[WARN] linear_surrogate.json not found or invalid - using built-in defaults");
+            LinearSurrogate::default()
+        }
+    };
+
     loop {
         // Get and parse context
         let context = get_context().await?;
@@ -124,8 +229,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let end = format!("{}-12-31", end_year);
                 
                 println!("[PHASE1] Fetching historical data for ranking ({} to {})...", start, end);
-                if let Err(e) = fetch_historical_returns(&mut all_stocks, &start, &end).await {
-                    eprintln!("[WARN] Could not fetch historical returns: {}", e);
+                if let Err(_e) = fetch_historical_returns(&mut all_stocks, &start, &end).await {
+                    // eprintln!("[WARN] Could not fetch historical returns: {}", _e);
                 }
             }
             
@@ -136,6 +241,74 @@ async fn main() -> Result<(), Box<dyn Error>> {
             if eligible_stocks.is_empty() {
                 return Err("No eligible stocks found!".into());
             }
+
+            // Use linear surrogate predictor to estimate expected points and skip if below threshold
+            // Compute features approximated from eligible universe (portfolio-level features are approximated here)
+            let mut seen = 0.0f64;
+            let mut sum_logcap = 0.0f64;
+            let mut sum_vol = 0.0f64;
+            let mut sum_pts = 0.0f64;
+            for s in &eligible_stocks {
+                seen += 1.0;
+                if s.market_cap > 0 {
+                    sum_logcap += (s.market_cap as f64).log10();
+                }
+                sum_vol += s.volatility;
+                let bucket = volatility_bucket(s.volatility);
+                let score = PointsStore::load("points_store.json").get_score(&s.ticker, bucket);
+                sum_pts += score;
+            }
+            let avg_logcap = if seen > 0.0 { sum_logcap / seen } else { 0.0 };
+            let avg_vol = if seen > 0.0 { sum_vol / seen } else { 0.0 };
+            let avg_pts_score = if seen > 0.0 { sum_pts / seen } else { 0.0 };
+
+            let period_years = match (profile.start_year, profile.end_year) {
+                (Some(s), Some(e)) if e >= s => (e - s + 1) as f64,
+                _ => 1.0,
+            };
+
+            // Approximate portfolio size by eligible universe size (conservative proxy)
+            let psize = eligible_stocks.len() as f64;
+
+            let predicted_points = predict_points_surrogate(
+                &surrogate,
+                profile.budget,
+                eligible_stocks.len(),
+                period_years,
+                avg_vol,
+                avg_logcap,
+                avg_pts_score,
+                psize,
+                &profile.risk_tolerance,
+            );
+
+            println!("[HEURISTIC] Surrogate predicted points: {:.2} (threshold {:.2})", predicted_points, MIN_EXPECTED_POINTS);
+            if predicted_points < MIN_EXPECTED_POINTS {
+                println!("[SKIP] Predicted points {:.2} below threshold {:.2} - skipping this request.", predicted_points, MIN_EXPECTED_POINTS);
+                // Log a compact trace entry for analysis indicating we skipped this request
+                if let Ok(mut f) = OpenOptions::new().create(true).append(true).open("request_trace.jsonl") {
+                    use chrono::Utc;
+                    let ts = Utc::now().to_rfc3339();
+                    let entry = json!({
+                        "ts": ts,
+                        "raw_context": context,
+                        "parsed_profile": {
+                            "name": profile.name,
+                            "age": profile.age,
+                            "budget": profile.budget,
+                        },
+                        "eligible_count": eligible_stocks.len(),
+                        "predicted_points": predicted_points,
+                        "skipped": true,
+                        "skip_reason": "low_expected_points"
+                    });
+                    if let Ok(line) = serde_json::to_string(&entry) {
+                        let _ = f.write_all(line.as_bytes());
+                        let _ = f.write_all(b"\n");
+                    }
+                }
+                continue;
+            }
         
             // Build portfolio based on interpolated/cached data
             let portfolio = build_portfolio(
@@ -143,6 +316,40 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 profile.budget,
                 profile.risk_tolerance
             );
+            // If the built portfolio has zero total market value (e.g., no quantities or prices missing), skip.
+            let mut portfolio_value = 0.0f64;
+            for (ticker, qty) in &portfolio {
+                if *qty <= 0 { continue; }
+                if let Some(stock) = eligible_stocks.iter().find(|s| &s.ticker == ticker) {
+                    portfolio_value += stock.get_current_price() * (*qty as f64);
+                }
+            }
+            if portfolio_value == 0.0 {
+                println!("[SKIP] Built portfolio has zero value - skipping request.");
+                // Log skip for later analysis
+                if let Ok(mut f) = OpenOptions::new().create(true).append(true).open("request_trace.jsonl") {
+                    use chrono::Utc;
+                    let ts = Utc::now().to_rfc3339();
+                    let entry = json!({
+                        "ts": ts,
+                        "raw_context": context,
+                        "parsed_profile": {
+                            "name": profile.name,
+                            "age": profile.age,
+                            "budget": profile.budget,
+                        },
+                        "eligible_count": eligible_stocks.len(),
+                        "portfolio_value": portfolio_value,
+                        "skipped": true,
+                        "skip_reason": "zero_portfolio_value"
+                    });
+                    if let Ok(line) = serde_json::to_string(&entry) {
+                        let _ = f.write_all(line.as_bytes());
+                        let _ = f.write_all(b"\n");
+                    }
+                }
+                continue;
+            }
             
             // Debug: Show selected stocks and their IPO info
             println!("\n[DEBUG] Selected stocks for portfolio:");
@@ -276,6 +483,46 @@ async fn print_portfolio_and_submit(
         if let Ok(line) = serde_json::to_string(&entry) {
             let _ = f.write_all(line.as_bytes());
             let _ = f.write_all(b"\n");
+        }
+    }
+    
+    // Reinforcement learning: immediate update of PointsStore using evaluator points
+    if let Ok(resp_text) = &send_result {
+        // Try to parse evaluator response as JSON to extract numeric `points`.
+        let mut points_val: Option<f64> = None;
+        if let Ok(v) = serde_json::from_str::<Value>(resp_text) {
+            if v.is_object() {
+                if let Some(p) = v.get("points").and_then(|x| x.as_f64()) {
+                    points_val = Some(p);
+                }
+            } else if v.is_string() {
+                if let Some(s) = v.as_str() {
+                    if let Ok(inner) = serde_json::from_str::<Value>(s) {
+                        if let Some(p) = inner.get("points").and_then(|x| x.as_f64()) {
+                            points_val = Some(p);
+                        }
+                    }
+                }
+            }
+        }
+
+        if let Some(points_num) = points_val {
+            // delta = points / 100 per your request
+            let delta = points_num / 100.0;
+            let mut ps = PointsStore::load("points_store.json");
+            for (ticker, _qty) in portfolio {
+                if let Some(stock) = eligible_stocks.iter().find(|s| &s.ticker == ticker) {
+                    let bucket = volatility_bucket(stock.volatility);
+                    ps.ensure_buckets(&ticker);
+                    ps.add_score(&ticker, bucket, delta);
+                } else {
+                    // If we don't have metadata, still apply to default (medium) bucket
+                    ps.ensure_buckets(&ticker);
+                    ps.add_score(&ticker, crate::points::VOL_MED, delta);
+                }
+            }
+            ps.save();
+            // eprintln!("[POINTS] Applied delta {:.4} for {} tickers", delta, portfolio.len());
         }
     }
     

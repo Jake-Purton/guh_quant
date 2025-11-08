@@ -1,5 +1,6 @@
 use crate::investor::{InvestorProfile, RiskLevel};
 use crate::stocks::Stock;
+use crate::points::PointsStore;
 
 // Learning / weighting configuration
 const RETURN_WEIGHT: f64 = 0.7; // weight given to historical return
@@ -15,7 +16,7 @@ const RANK_QUANTITIES: &[i32] = &[
     50, 20, 15, 10, 8, 6, 5, 4, 3, 2, // top 10
     1, 1, 1, 1, 1, // fallback for additional ranks
 ];
-// Hard cap on number of distinct positions in any portfolio
+// Hard cap on number of distict positions in any portfolio
 const MAX_POSITIONS: usize = 12;
 // Fraction of the provided budget that we allow the allocator to spend.
 // Set to 0.70 to only use 70% of the budget for purchases; the remainder
@@ -178,6 +179,51 @@ fn was_trading_during_period(stock: &Stock, start_year: Option<u32>) -> bool {
     false
 }
 
+    // Heuristics to detect 'dotcom-like' bubble risk. This is intentionally
+    // conservative: a stock is flagged risky if multiple signals appear together.
+    // Tweak the constants below to tune sensitivity.
+    const BUBBLE_IPO_START: u32 = 1995;
+    const BUBBLE_IPO_END: u32 = 2001;
+    const BUBBLE_RETURN_THRESHOLD: f64 = 200.0; // percent over the period
+    const BUBBLE_VOL_THRESHOLD: f64 = 0.10; // very high volatility
+    const BUBBLE_MARKETCAP_MAX: u64 = 5_000_000_000; // treat sub-$5B as smaller-cap
+
+    fn is_dotcom_bubble_risky(stock: &Stock) -> bool {
+        let mut signals = 0;
+
+        // 1) Techy sector keywords
+        let techy = stock.sectors.iter().any(|s| {
+            let s = s.to_lowercase();
+            s.contains("tech") || s.contains("internet") || s.contains("software") || s.contains("telecom") || s.contains("media")
+        });
+        if techy { signals += 1; }
+
+        // 2) Extremely high recent return
+        if let Some(ret) = stock.historical_return {
+            if ret > BUBBLE_RETURN_THRESHOLD { signals += 1; }
+        }
+
+        // 3) Very high volatility
+        if stock.volatility > BUBBLE_VOL_THRESHOLD { signals += 1; }
+
+        // 4) Recent IPO (during dot-com years)
+        if let Some(ft) = &stock.first_trading_date {
+            if let Some(year_str) = ft.split('-').next() {
+                if let Ok(y) = year_str.parse::<u32>() {
+                    if (BUBBLE_IPO_START..=BUBBLE_IPO_END).contains(&y) { signals += 1; }
+                }
+            }
+        } else if let Some(y) = get_first_trading_year(&stock.ticker) {
+            if (BUBBLE_IPO_START..=BUBBLE_IPO_END).contains(&y) { signals += 1; }
+        }
+
+        // 5) Small market cap
+        if stock.market_cap > 0 && stock.market_cap < BUBBLE_MARKETCAP_MAX { signals += 1; }
+
+        // Flag as risky only if at least two signals are present (adjustable)
+        signals >= 2
+    }
+
 /// Filter stocks based on investor profile requirements
 pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> Vec<Stock> {
     use once_cell::sync::OnceCell;
@@ -226,8 +272,48 @@ pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> 
         })
         .filter(|s| matches_risk_tolerance(s.volatility, profile.risk_tolerance))
         .filter(|s| was_trading_during_period(s, profile.start_year))
+        // Exclude stocks that exhibit multiple "bubble-like" signals (dotcom-style risk)
+        .filter(|s| !is_dotcom_bubble_risky(s))
+        // If the investor's end date falls during the COVID years (2020-2021),
+        // apply an extra conservative filter to avoid stocks vulnerable to
+        // pandemic-related crashes (travel, hospitality, airlines, etc.).
+        .filter(|s| {
+            if let Some(end) = profile.end_year {
+                if (2020..=2021).contains(&end) {
+                    return !is_covid_vulnerable(s);
+                }
+            }
+            true
+        })
         .cloned()
         .collect()
+}
+
+// Heuristic to detect COVID-vulnerable stocks. This is conservative: it
+// excludes obvious pandemic-sensitive sectors and small/high-volatility
+// stocks that suffered big negative returns (if that data exists).
+fn is_covid_vulnerable(stock: &Stock) -> bool {
+    // Sectors strongly hit by pandemic conditions
+    let vulnerable_keywords = ["airline", "travel", "hospitality", "leisure", "hotel", "cruise", "restaurant", "casino", "retail", "brick-and-mortar", "leisure", "transportation"];
+
+    let sector_hit = stock.sectors.iter().any(|s| {
+        let ls = s.to_lowercase();
+        vulnerable_keywords.iter().any(|kw| ls.contains(kw))
+    });
+    if sector_hit { return true; }
+
+    // If we have historical return info for the requested period and it shows
+    // a large negative return, treat as vulnerable.
+    if let Some(r) = stock.historical_return {
+        if r < -30.0 { return true; }
+    }
+
+    // Small market-cap + high volatility is riskier during shocks
+    if stock.market_cap > 0 && stock.market_cap < 2_000_000_000 && stock.volatility > 0.07 {
+        return true;
+    }
+
+    false
 }
 
 pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> Vec<(String, i32)> {
@@ -336,6 +422,17 @@ fn calculate_performance_weights(stocks: &[&Stock]) -> Vec<f64> {
     }
 }
 
+/// Convert a numeric volatility into a stable bucket name used by PointsStore
+pub fn volatility_bucket(volatility: f64) -> &'static str {
+    if volatility < 0.03 {
+        return crate::points::VOL_LOW;
+    }
+    if volatility < 0.05 {
+        return crate::points::VOL_MED;
+    }
+    crate::points::VOL_HIGH
+}
+
 /// Build portfolio with performance-weighted allocation
 fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usize) -> Vec<(String, i32)> {
     // Enforce global upper bound on positions
@@ -350,9 +447,24 @@ fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usi
     let return_weights = calculate_performance_weights(&top_stocks);
 
     // Combined score: weighted blend of historical returns and learned points
+    // Load PointsStore (if present) to bias selection by learned per-ticker scores
+    let ps = PointsStore::load("points_store.json");
+
+    // Build points-based weights for the top stocks using volatility buckets
+    let points_raw: Vec<f64> = top_stocks.iter()
+        .map(|s| ps.get_score(&s.ticker, volatility_bucket(s.volatility)))
+        .collect();
+
+    let points_total: f64 = points_raw.iter().sum();
+    let points_weights: Vec<f64> = if points_total > 0.0 {
+        points_raw.iter().map(|v| v / points_total).collect()
+    } else {
+        vec![1.0 / (points_raw.len() as f64); points_raw.len()]
+    };
+
     let mut combined: Vec<f64> = Vec::with_capacity(top_stocks.len());
     for i in 0..top_stocks.len() {
-            let c = RETURN_WEIGHT * return_weights[i]; // Only using return weights now
+        let c = RETURN_WEIGHT * return_weights[i] + (1.0 - RETURN_WEIGHT) * points_weights[i];
         combined.push(c);
     }
 
