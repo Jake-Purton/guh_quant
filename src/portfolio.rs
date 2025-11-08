@@ -7,6 +7,23 @@ const RETURN_WEIGHT: f64 = 0.7; // weight given to historical return
 const POINTS_WEIGHT: f64 = 0.3; // weight given to learned points
 const POINTS_DECAY: f64 = 0.995; // per-allocation decay to slowly forget old signals
 
+// Concentrated allocation settings
+// When true, allocate quantities using a rank-based quantity table
+// (e.g. 50 shares of top, 20 of second, ...). If budget doesn't allow the
+// full target quantity the value is reduced to what can be afforded.
+const CONCENTRATE_ALLOCATION: bool = true;
+// Default rank quantity targets for positions (index 0 = top performer)
+const RANK_QUANTITIES: &[i32] = &[
+    50, 20, 15, 10, 8, 6, 5, 4, 3, 2, // top 10
+    1, 1, 1, 1, 1, // fallback for additional ranks
+];
+// Hard cap on number of distinct positions in any portfolio
+const MAX_POSITIONS: usize = 7;
+// Fraction of the provided budget that we allow the allocator to spend.
+// Set to 0.70 to only use 70% of the budget for purchases; the remainder
+// is intentionally left unspent as a conservative buffer.
+pub const BUDGET_SPEND_FRACTION: f64 = 0.60;
+
 /// Calculate the total cost of a portfolio
 fn calculate_portfolio_cost(portfolio: &[(String, i32)], stocks: &[Stock]) -> f64 {
     portfolio.iter()
@@ -205,13 +222,37 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
         RiskLevel::Aggressive => 7,    // More concentrated
     };
     
+    // Use a conservative allocation budget fraction so we only spend part of
+    // the provided budget (e.g., 70%). This leaves a buffer and reduces
+    // risk of budget-breaches and allows some cash to remain unspent.
+    let alloc_budget = budget * BUDGET_SPEND_FRACTION;
+
     // For small budgets, use greedy allocation instead of equal weight
-    let portfolio = if budget < 5000.0 {
-        build_greedy_portfolio(&sorted_stocks, budget)
+    let portfolio = if alloc_budget < 5000.0 {
+        build_greedy_portfolio(&sorted_stocks, alloc_budget)
     } else {
         // Performance-weighted allocation for larger budgets
-        build_weighted_portfolio(&sorted_stocks, budget, target_positions)
+        build_weighted_portfolio(&sorted_stocks, alloc_budget, target_positions)
     };
+    
+    // Defensive trim: ensure we never return more than MAX_POSITIONS distinct tickers.
+    // This is an extra safety net in case other allocation paths produce more entries.
+    if portfolio.len() > MAX_POSITIONS {
+        eprintln!("[VALIDATOR] Trimming portfolio from {} to {} positions (MAX_POSITIONS)", portfolio.len(), MAX_POSITIONS);
+        // Sort by historical return (highest first) using the stocks metadata, then keep top MAX_POSITIONS
+        let mut portfolio_sorted = portfolio.clone();
+        portfolio_sorted.sort_by(|(t1, _), (t2, _)| {
+            let r1 = stocks.iter().find(|s| &s.ticker == t1).and_then(|s| s.historical_return).unwrap_or(0.0);
+            let r2 = stocks.iter().find(|s| &s.ticker == t2).and_then(|s| s.historical_return).unwrap_or(0.0);
+            r2.partial_cmp(&r1).unwrap_or(std::cmp::Ordering::Equal)
+        });
+        let mut trimmed = portfolio_sorted.into_iter().take(MAX_POSITIONS).collect::<Vec<_>>();
+        // Final safety: ensure trimmed portfolio is within budget (force trim if necessary)
+        if !validate_budget(&trimmed, stocks, budget) {
+            force_within_budget(&mut trimmed, stocks, budget);
+        }
+        return trimmed;
+    }
     
     // ABSOLUTE FINAL SAFETY CHECK
     let total_cost = calculate_portfolio_cost(&portfolio, stocks);
@@ -252,7 +293,8 @@ fn calculate_performance_weights(stocks: &[&Stock]) -> Vec<f64> {
 
 /// Build portfolio with performance-weighted allocation
 fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usize) -> Vec<(String, i32)> {
-    let num_positions = target_positions.min(stocks.len());
+    // Enforce global upper bound on positions
+    let num_positions = target_positions.min(stocks.len()).min(MAX_POSITIONS);
     let top_stocks: Vec<&Stock> = stocks.iter().take(num_positions).collect();
     
     if top_stocks.is_empty() {
@@ -291,31 +333,86 @@ fn build_weighted_portfolio(stocks: &[Stock], budget: f64, target_positions: usi
         for v in combined.iter_mut() { *v = default; }
     }
 
-    // Allocate budget proportionally to each stock using combined weights
+    // Allocate budget.
+    // Two modes:
+    //  - Concentrated rank-quantity allocation: buy a pre-defined number of
+    //    shares for each rank (e.g. 50 for top, 20 for second). If budget does
+    //    not allow the full target quantity the count is reduced to what can
+    //    be afforded.
+    //  - Proportional allocation (legacy): allocate budget proportionally to
+    //    combined weights and convert to quantities.
     let mut portfolio = Vec::new();
     let mut allocated = 0.0;
-    for (i, stock) in top_stocks.iter().enumerate() {
-    // Use current price for allocation math so submitted portfolio cost
-    // matches what the evaluator will compute.
-    let purchase_price = stock.get_current_price();
-        let target_allocation = budget * combined[i];
-        let quantity = (target_allocation / purchase_price).floor() as i32;
 
-        if quantity > 0 {
-            let cost = (quantity as f64) * purchase_price;
-            if allocated + cost <= budget {
-                portfolio.push((stock.ticker.clone(), quantity));
-                allocated += cost;
+    if CONCENTRATE_ALLOCATION {
+        for (i, stock) in top_stocks.iter().enumerate() {
+            let price = stock.get_current_price();
+            if price <= 0.0 { continue; }
+
+            // Determine desired quantity by rank table (fallback to 1)
+            let desired_qty = if i < RANK_QUANTITIES.len() { RANK_QUANTITIES[i] } else { 1 };
+
+            // If desired_qty is zero or negative, skip
+            if desired_qty <= 0 { continue; }
+
+            // Cost for desired quantity
+            let desired_cost = (desired_qty as f64) * price;
+
+            if allocated + desired_cost <= budget {
+                // We can afford full desired quantity
+                portfolio.push((stock.ticker.clone(), desired_qty));
+                allocated += desired_cost;
             } else {
-                eprintln!("[WARN] Skipping {} - would exceed budget", stock.ticker);
+                // Try to fit as many as possible of the desired_qty
+                let remaining = (budget - allocated).max(0.0);
+                let afford_qty = (remaining / price).floor() as i32;
+                if afford_qty > 0 {
+                    let cost = (afford_qty as f64) * price;
+                    portfolio.push((stock.ticker.clone(), afford_qty));
+                    allocated += cost;
+                } else {
+                    // Nothing affordable for this rank; skip to next (could be cheaper)
+                    eprintln!("[WARN] Could not afford any shares of {} at ${:.2} with ${:.2} remaining", stock.ticker, price, budget - allocated);
+                }
             }
         }
-    }
 
-    // Deploy remaining budget into top combined performer
-    let remaining = budget - allocated;
-    if remaining > 0.0 {
-        deploy_remaining_budget(&mut portfolio, remaining, top_stocks[0], budget);
+        // If we ended up with no positions (extremely small budgets), fall back to greedy
+        if portfolio.is_empty() {
+            eprintln!("[WARN] Concentrated allocation produced empty portfolio, falling back to greedy allocation");
+            return build_greedy_portfolio(stocks, budget);
+        }
+
+        // Deploy any small remaining budget into the top performer
+        let remaining = budget - allocated;
+        if remaining > 0.0 {
+            deploy_remaining_budget(&mut portfolio, remaining, top_stocks[0], budget);
+        }
+    } else {
+        // Proportional legacy allocation (unchanged)
+        for (i, stock) in top_stocks.iter().enumerate() {
+            // Use current price for allocation math so submitted portfolio cost
+            // matches what the evaluator will compute.
+            let purchase_price = stock.get_current_price();
+            let target_allocation = budget * combined[i];
+            let quantity = (target_allocation / purchase_price).floor() as i32;
+
+            if quantity > 0 {
+                let cost = (quantity as f64) * purchase_price;
+                if allocated + cost <= budget {
+                    portfolio.push((stock.ticker.clone(), quantity));
+                    allocated += cost;
+                } else {
+                    eprintln!("[WARN] Skipping {} - would exceed budget", stock.ticker);
+                }
+            }
+        }
+
+        // Deploy remaining budget into top combined performer
+        let remaining = budget - allocated;
+        if remaining > 0.0 {
+            deploy_remaining_budget(&mut portfolio, remaining, top_stocks[0], budget);
+        }
     }
 
     // FINAL SAFETY CHECK: Validate budget
@@ -383,6 +480,11 @@ fn build_greedy_portfolio(stocks: &[Stock], budget: f64) -> Vec<(String, i32)> {
     affordable_stocks.sort_by(|a, b| {
         a.get_current_price().partial_cmp(&b.get_current_price()).unwrap()
     });
+
+    // Enforce a hard cap on number of distinct positions for greedy allocation
+    if affordable_stocks.len() > MAX_POSITIONS {
+        affordable_stocks.truncate(MAX_POSITIONS);
+    }
     
     // Greedy approach: buy as many shares as possible, diversifying when we can
     let mut stock_index = 0;

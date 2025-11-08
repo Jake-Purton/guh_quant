@@ -9,8 +9,11 @@ use std::error::Error;
 
 use investor::InvestorProfile;
 use stocks::{Stock, prefetch_all_stocks, fetch_historical_returns};
-use portfolio::{filter_stocks_by_profile, build_portfolio};
-use std::collections::HashMap;
+use portfolio::{filter_stocks_by_profile, build_portfolio, BUDGET_SPEND_FRACTION};
+use std::collections::{HashMap, HashSet};
+use std::fs::OpenOptions;
+use std::io::Write;
+use regex::Regex;
 
 const URL: &str = "http://www.prism-challenge.com";
 const PORT: u16 = 8082;
@@ -164,7 +167,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             // Submit portfolio with interpolated prices
                 // Validate/clean portfolio before the single allowed submit
                 let cleaned = pre_submit_validate(&portfolio, &eligible_stocks, profile.budget);
-                print_portfolio_and_submit(&cleaned, &eligible_stocks, &profile).await?;
+                // Pass the raw context and original budget so the logger can record both
+                print_portfolio_and_submit(&cleaned, &eligible_stocks, &profile, &context, profile.budget).await?;
         } else {
             println!("error in profile skipping")
         }
@@ -178,7 +182,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 async fn print_portfolio_and_submit(
     portfolio: &[(String, i32)],
     eligible_stocks: &[Stock],
-    profile: &InvestorProfile
+    profile: &InvestorProfile,
+    raw_context: &str,
+    original_budget: f64,
 ) -> Result<(), Box<dyn Error>> {
     let mut total_cost = 0.0;
     for (ticker, qty) in portfolio {
@@ -210,13 +216,159 @@ async fn print_portfolio_and_submit(
         .map(|(t, q)| (t.as_str(), *q))
         .collect();
 
-    // Submit portfolio
-    match send_portfolio(portfolio_refs).await {
-        Ok(response) => println!("\n[SUCCESS] Evaluation: {}", response),
-        Err(e) => println!("[ERROR] {}", e),
+    // Submit portfolio and capture the response (or error) for logging
+    let send_result = match send_portfolio(portfolio_refs).await {
+        Ok(response) => {
+            println!("\n[SUCCESS] Evaluation: {}", response);
+            Ok(response)
+        }
+        Err(e) => {
+            println!("[ERROR] {}", e);
+            // Try to extract problematic tickers from the error message and persist them
+            if let Some(problematic) = parse_problematic_tickers(&e.to_string()) {
+                if !problematic.is_empty() {
+                    if let Err(err) = append_rejected_tickers(&problematic) {
+                        eprintln!("[VALIDATOR] Failed to append rejected tickers: {}", err);
+                    } else {
+                        eprintln!("[VALIDATOR] Appended rejected tickers: {:?}", problematic);
+                    }
+                }
+            }
+            Err(e)
+        }
+    };
+
+    // Append a compact JSONL trace for debugging/correlation analysis
+    // Fields: timestamp, raw_context, parsed_profile, eligible_count, alloc_budget, portfolio, total_cost, response/error
+    if let Ok(mut f) = OpenOptions::new().create(true).append(true).open("request_trace.jsonl") {
+        use chrono::Utc;
+        let ts = Utc::now().to_rfc3339();
+
+        // Build profile object
+        let profile_obj = json!({
+            "name": profile.name,
+            "age": profile.age,
+            "budget": profile.budget,
+            "excluded_sectors": profile.excluded_sectors,
+            "risk_tolerance": format!("{:?}", profile.risk_tolerance),
+            "start_year": profile.start_year,
+            "end_year": profile.end_year,
+        });
+
+        let alloc_budget = original_budget * BUDGET_SPEND_FRACTION;
+
+        let portfolio_json: Vec<Value> = portfolio.iter().map(|(t, q)| json!({ "ticker": t, "quantity": q })).collect();
+
+        let entry = json!({
+            "ts": ts,
+            "raw_context": raw_context,
+            "parsed_profile": profile_obj,
+            "eligible_count": eligible_stocks.len(),
+            "alloc_budget": alloc_budget,
+            "portfolio": portfolio_json,
+            "allocated_cost": total_cost,
+            "result": match &send_result {
+                Ok(resp) => json!({"ok": true, "response": resp}),
+                Err(err) => json!({"ok": false, "error": err.to_string()}),
+            }
+        });
+
+        if let Ok(line) = serde_json::to_string(&entry) {
+            let _ = f.write_all(line.as_bytes());
+            let _ = f.write_all(b"\n");
+        }
     }
     
     Ok(())
+}
+
+// Load rejected tickers from disk (one per line). Missing file results in empty set.
+fn load_rejected_tickers(path: &str) -> HashSet<String> {
+    match std::fs::read_to_string(path) {
+        Ok(contents) => contents
+            .lines()
+            .map(|l| l.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect(),
+        Err(_) => HashSet::new(),
+    }
+}
+
+// Append new rejected tickers to the file (avoids duplicates by checking existing file first)
+fn append_rejected_tickers(tickers: &[String]) -> Result<(), Box<dyn Error>> {
+    let path = "rejected_tickers.txt";
+    let mut existing = load_rejected_tickers(path);
+    let mut new_added = Vec::new();
+
+    for t in tickers {
+        if !existing.contains(t) {
+            existing.insert(t.clone());
+            new_added.push(t.clone());
+        }
+    }
+
+    if new_added.is_empty() {
+        return Ok(());
+    }
+
+    let mut f = OpenOptions::new().create(true).append(true).open(path)?;
+    for t in new_added {
+        writeln!(f, "{}", t)?;
+    }
+
+    Ok(())
+}
+
+// Try to parse a few common error message shapes to extract problematic tickers.
+// Returns None if nothing parsed.
+fn parse_problematic_tickers(err_text: &str) -> Option<Vec<String>> {
+    // Use regex-based extraction to handle multiple error formats.
+    let mut found: HashSet<String> = HashSet::new();
+
+    // 1) Extract contents of bracketed lists: [...]
+    if let Ok(bracket_re) = Regex::new(r"\[([^\]]+)\]") {
+        for cap in bracket_re.captures_iter(err_text) {
+            let inner = cap.get(1).map(|m| m.as_str()).unwrap_or("");
+            for token in inner.split(|c: char| !c.is_alphanumeric() && c != '-' && c != '.') {
+                let tok = token.trim().trim_matches('"').trim_matches('\'');
+                if tok.is_empty() { continue; }
+                let cleaned: String = tok.chars()
+                    .filter(|c| c.is_alphanumeric() || *c == '-' || *c == '.')
+                    .map(|c| c.to_ascii_uppercase())
+                    .collect();
+                if cleaned.chars().any(|c| c.is_ascii_alphabetic()) {
+                    found.insert(cleaned);
+                }
+            }
+        }
+    }
+
+    // 2) Specific pattern: 'invalid ticker type: TICKER of type ...'
+    if let Ok(inv_re) = Regex::new(r"invalid ticker type:\s*([A-Za-z0-9.\-]+)") {
+        for cap in inv_re.captures_iter(err_text) {
+            found.insert(cap[1].to_ascii_uppercase());
+        }
+    }
+
+    // 3) Some errors embed arrays of pairs like [['TTWO', 11], ['ROKU', 10]] - bracket capture above will pick them up,
+    // but as a fallback extract standalone ticker-like tokens (all-caps, length 1-6)
+    if found.is_empty() {
+        if let Ok(tok_re) = Regex::new(r"\b[A-Z0-9][A-Z0-9.\-]{0,6}\b") {
+            for cap in tok_re.captures_iter(err_text) {
+                let tok = &cap[0];
+                // skip purely numeric tokens
+                if tok.chars().any(|c| c.is_ascii_alphabetic()) {
+                    found.insert(tok.to_string());
+                }
+            }
+        }
+    }
+
+    if found.is_empty() {
+        None
+    } else {
+        Some(found.into_iter().collect())
+    }
 }
 
 /// Pre-submit validator: remove unknown tickers and force portfolio within budget.
@@ -225,6 +377,12 @@ fn pre_submit_validate(
     eligible_stocks: &[Stock],
     budget: f64,
 ) -> Vec<(String, i32)> {
+    // Conservative pre-submit validator.
+    // We apply a small safety margin because the remote evaluator may value
+    // the portfolio using a different snapshot or canonical tickers. This
+    // margin reduces the chance of a single-submission budget-breach.
+    const SUBMIT_MARGIN: f64 = 0.03; // 3% safety margin
+
     // Build a lookup of current prices
     let price_map: HashMap<String, f64> = eligible_stocks
         .iter()
@@ -237,13 +395,40 @@ fn pre_submit_validate(
         .cloned()
         .collect();
 
+    // Also drop any tickers we've previously seen rejected by the evaluator
+    let rejected = load_rejected_tickers("rejected_tickers.txt");
+    if !rejected.is_empty() {
+        let before = cleaned.len();
+        cleaned.retain(|(t, _)| !rejected.contains(t));
+        let after = cleaned.len();
+        if before != after {
+            eprintln!("[VALIDATOR] Removed {} previously-rejected tickers before submit", before - after);
+        }
+    }
+
+    // Drop obviously-problematic tickers (dots, slashes, carets) that the
+    // evaluator often rejects as non-canonical. Log them for analysis.
+    let mut removed_problematic: Vec<String> = Vec::new();
+    cleaned.retain(|(t, q)| {
+        if t.contains('.') || t.contains('/') || t.contains('^') || t.contains(' ') {
+            removed_problematic.push(t.clone());
+            false
+        } else {
+            *q > 0
+        }
+    });
+    if !removed_problematic.is_empty() {
+        eprintln!("[VALIDATOR] Dropped problematic tickers (non-canonical forms): {:?}", removed_problematic);
+    }
+
     // Compute current total cost
     let mut total: f64 = cleaned.iter().map(|(t, q)| price_map.get(t).unwrap() * (*q as f64)).sum();
 
-    // If already within budget, return as-is
-    if total <= budget { return cleaned; }
+    // Apply safety margin to the effective budget we target
+    let effective_budget = budget * (1.0 - SUBMIT_MARGIN);
+    if total <= effective_budget { return cleaned; }
 
-    eprintln!("[VALIDATOR] Portfolio exceeds budget before submit: ${:.2} > ${:.2}. Reducing...", total, budget);
+    eprintln!("[VALIDATOR] Portfolio exceeds safe budget before submit: ${:.2} > ${:.2} (budget ${:.2}, margin {:.1}%) - reducing...", total, effective_budget, budget, SUBMIT_MARGIN*100.0);
 
     // Sort positions by price descending (drop most expensive shares first)
     cleaned.sort_by(|a, b| {
@@ -252,9 +437,9 @@ fn pre_submit_validate(
         pb.partial_cmp(&pa).unwrap()
     });
 
-    // Iteratively reduce quantities from the most expensive position until under budget
+    // Iteratively reduce quantities from the most expensive position until under effective_budget
     let mut idx = 0;
-    while total > budget && !cleaned.is_empty() {
+    while total > effective_budget && !cleaned.is_empty() {
         if idx >= cleaned.len() { idx = 0; } // wrap
 
         let (ref ticker, ref mut qty) = cleaned[idx];
@@ -270,10 +455,11 @@ fn pre_submit_validate(
             }
         } else {
             // remove impossible position
-            cleaned.remove(idx);
+            let removed = cleaned.remove(idx);
+            eprintln!("[VALIDATOR] Removed impossible position: {:?}", removed);
         }
     }
 
-    eprintln!("[VALIDATOR] Reduced portfolio cost to ${:.2}", total);
+    eprintln!("[VALIDATOR] Reduced portfolio cost to ${:.2} (target <= ${:.2})", total, effective_budget);
     cleaned
 }

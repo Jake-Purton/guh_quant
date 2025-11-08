@@ -48,8 +48,26 @@ impl PointsStore {
     /// Add (or subtract) points for a ticker. Scores are clamped to >= 0.
     pub fn add_score(&mut self, ticker: &str, delta: f64) {
         let entry = self.scores.entry(ticker.to_string()).or_insert(0.0);
-        *entry += delta;
-        if *entry < 0.0 { *entry = 0.0; }
+        let old = *entry;
+        let mut new = old + delta;
+        if new < 0.0 { new = 0.0; }
+        *entry = new;
+
+        // Log when a negative delta was applied or the score decreased
+        if delta < 0.0 || new < old {
+            eprintln!("[POINTS] Negative update for {}: delta={:.4}, old={:.4} -> new={:.4}", ticker, delta, old, new);
+
+            // Try to append to a persistent log for later analysis. Ignore failures.
+            if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open("negative_points.log") {
+                use std::time::{SystemTime, UNIX_EPOCH};
+                if let Ok(since) = SystemTime::now().duration_since(UNIX_EPOCH) {
+                    let ts = since.as_secs();
+                    let _ = f.write_all(format!("{},{},{:.4},{:.4},{:.4}\n", ts, ticker, delta, old, new).as_bytes());
+                } else {
+                    let _ = f.write_all(format!("{}, {:.4}, {:.4}, {:.4}\n", ticker, delta, old, new).as_bytes());
+                }
+            }
+        }
     }
 
     /// Multiply all scores by a decay factor in (0,1] to slowly forget old signals.
