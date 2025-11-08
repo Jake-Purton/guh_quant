@@ -36,11 +36,13 @@ impl InvestorProfile {
             .or_else(|| Self::extract_number(&msg_lower, r"(\d+)\s+years?\s+old"))
             .unwrap_or(45);
 
-        // Extract budget - pattern: "budget of $X" or "$X"
+        // Extract budget - must explicitly mention "budget"
         let budget = Self::extract_money(&msg_lower, r"budget of \$([0-9,]+)")
+            .or_else(|| Self::extract_money(&msg_lower, r"budget is \$([0-9,]+)"))
             .or_else(|| Self::extract_money(&msg_lower, r"total budget of \$([0-9,]+)"))
-            .or_else(|| Self::extract_money(&msg_lower, r"\$([0-9,]+)"))
-            .ok_or("no")?;
+            .or_else(|| Self::extract_money(&msg_lower, r"investment is \$([0-9,]+)"))
+            .ok_or("Budget not found in context — must include 'budget of' or 'budget is'")?;
+
 
         // Extract name (first two capitalized words)
         let name = msg

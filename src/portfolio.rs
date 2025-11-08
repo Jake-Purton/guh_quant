@@ -57,7 +57,7 @@ const MAX_POSITIONS: usize = 12;
 ///
 ///   export BUDGET_SPEND_FRACTION=0.8
 ///
-pub const BUDGET_SPEND_FRACTION: f64 = 0.5;
+pub const BUDGET_SPEND_FRACTION: f64 = 0.8;
 
 /// Return the budget spend fraction to use at runtime. First checks the
 /// environment variable `BUDGET_SPEND_FRACTION` and falls back to the
