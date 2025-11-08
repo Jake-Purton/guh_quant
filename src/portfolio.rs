@@ -1,6 +1,35 @@
 use crate::investor::{InvestorProfile, RiskLevel};
 use crate::stocks::Stock;
 use crate::points::PointsStore;
+use serde_json::json;
+use chrono::Utc;
+use std::fs::OpenOptions;
+use std::io::Write;
+
+// Helper: append an overbudget event (JSONL) with timestamp, budget, cost and portfolio
+fn log_overbudget_event(portfolio: &[(String, i32)], stocks: &[Stock], budget: f64, total_cost: f64, reason: &str) {
+    if let Ok(mut f) = OpenOptions::new().create(true).append(true).open("overbudget_events.jsonl") {
+        let ts = Utc::now().to_rfc3339();
+        let portfolio_json: Vec<serde_json::Value> = portfolio.iter().map(|(t, q)| {
+            let price = stocks.iter().find(|s| &s.ticker == t).map(|s| s.get_current_price()).unwrap_or(0.0);
+            json!({"ticker": t, "quantity": q, "price": price})
+        }).collect();
+
+        let entry = json!({
+            "ts": ts,
+            "reason": reason,
+            "budget": budget,
+            "total_cost": total_cost,
+            "over_by": total_cost - budget,
+            "portfolio": portfolio_json,
+        });
+
+        if let Ok(line) = serde_json::to_string(&entry) {
+            let _ = f.write_all(line.as_bytes());
+            let _ = f.write_all(b"\n");
+        }
+    }
+}
 
 // Learning / weighting configuration
 const RETURN_WEIGHT: f64 = 0.7; // weight given to historical return
@@ -10,7 +39,7 @@ const RETURN_WEIGHT: f64 = 0.7; // weight given to historical return
 // When true, allocate quantities using a rank-based quantity table
 // (e.g. 50 shares of top, 20 of second, ...). If budget doesn't allow the
 // full target quantity the value is reduced to what can be afforded.
-const CONCENTRATE_ALLOCATION: bool = false;
+const CONCENTRATE_ALLOCATION: bool = true;
 // Default rank quantity targets for positions (index 0 = top performer)
 const RANK_QUANTITIES: &[i32] = &[
     50, 20, 15, 10, 8, 6, 5, 4, 3, 2, // top 10
@@ -28,7 +57,7 @@ const MAX_POSITIONS: usize = 12;
 ///
 ///   export BUDGET_SPEND_FRACTION=0.8
 ///
-pub const BUDGET_SPEND_FRACTION: f64 = 0.8;
+pub const BUDGET_SPEND_FRACTION: f64 = 0.5;
 
 /// Return the budget spend fraction to use at runtime. First checks the
 /// environment variable `BUDGET_SPEND_FRACTION` and falls back to the
@@ -64,6 +93,8 @@ fn validate_budget(portfolio: &[(String, i32)], stocks: &[Stock], budget: f64) -
         eprintln!("  Budget: ${:.2}", budget);
         eprintln!("  Portfolio cost: ${:.2}", total_cost);
         eprintln!("  Over by: ${:.2}", total_cost - budget);
+        // Log the chosen funds for debugging/analysis
+        log_overbudget_event(portfolio, stocks, budget, total_cost, "validate_budget_check");
     }
     
     is_valid
@@ -404,6 +435,8 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
     if total_cost > budget {
         eprintln!("[CRITICAL ERROR] Portfolio cost ${:.2} exceeds budget ${:.2}!", total_cost, budget);
         eprintln!("[CRITICAL ERROR] This should never happen - contact developer!");
+        // Persist the chosen funds and context for post-mortem analysis
+        log_overbudget_event(&portfolio, stocks, budget, total_cost, "final_safety_check");
         let mut fixed_portfolio = portfolio;
         force_within_budget(&mut fixed_portfolio, stocks, budget);
         return fixed_portfolio;

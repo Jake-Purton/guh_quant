@@ -83,12 +83,47 @@ def main():
                         res = rec.get('result')
                         if isinstance(res, dict):
                             if res.get('ok') is False or res.get('error'):
-                                flat['__points__'] = -400
+                                # prefer explicit error text when present
+                                err_text = None
+                                if isinstance(res.get('error'), str) and res.get('error'):
+                                    err_text = res.get('error')
+                                elif isinstance(res.get('response'), str) and res.get('response'):
+                                    err_text = res.get('response')
+                                def is_overbudget_text(text: str) -> bool:
+                                    if not text:
+                                        return False
+                                    tl = str(text).lower()
+                                    if 'budget' in tl and any(k in tl for k in ('breach', 'breached', 'exceed', 'exceeded')):
+                                        return True
+                                    if 'budget breached' in tl or 'budget breach' in tl:
+                                        return True
+                                    if 'would exceed budget' in tl or 'exceeds budget' in tl or 'exceed budget' in tl:
+                                        return True
+                                    return False
+                                if is_overbudget_text(err_text):
+                                    flat['__points__'] = -2000
+                                else:
+                                    flat['__points__'] = -400
                                 err_found = True
                     if not err_found:
+                        def is_overbudget_text(text: str) -> bool:
+                            if not text:
+                                return False
+                            tl = str(text).lower()
+                            if 'budget' in tl and any(k in tl for k in ('breach', 'breached', 'exceed', 'exceeded')):
+                                return True
+                            if 'budget breached' in tl or 'budget breach' in tl:
+                                return True
+                            if 'would exceed budget' in tl or 'exceeds budget' in tl or 'exceed budget' in tl:
+                                return True
+                            return False
+
                         for fk, fv in flat.items():
                             if fk.split('.')[-1].lower() == 'error' and fv not in (None, '', []):
-                                flat['__points__'] = -400
+                                if is_overbudget_text(fv):
+                                    flat['__points__'] = -2000
+                                else:
+                                    flat['__points__'] = -400
                                 err_found = True
                     if not err_found:
                         continue

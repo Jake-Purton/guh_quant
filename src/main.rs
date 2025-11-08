@@ -22,7 +22,7 @@ const PORT: u16 = 8082;
 const TEAM_API_CODE: &str = "f7f47b3680640b753e6cccfd14bbca89";
 // Minimum expected client worth (in 'points') below which we will skip the request.
 // Tune this constant to be more or less aggressive about skipping low-value clients.
-const MIN_EXPECTED_POINTS: f64 = 20.0; // suggested starting threshold (near mean_expected ~90)
+const MIN_EXPECTED_POINTS: f64 = -100.0; // suggested starting threshold (near mean_expected ~90)
 
 // Linear surrogate predictor default coefficients exported from `linear_surrogate.json`.
 // Feature order: [budget_log, eligible, period, avg_vol, avg_logcap, avg_pt, psize, risk_cons, risk_mod, risk_aggr]
@@ -88,9 +88,17 @@ fn predict_points_surrogate(sur: &LinearSurrogate,
     psize: f64,
     risk: &investor::RiskLevel,
 ) -> f64 {
+    // Apply conservative runtime feature transforms to avoid runaway linear
+    // predictions caused by very large counts or out-of-distribution scales.
+    // - Use ln1p for counts (eligible, psize) so growth is sublinear.
+    // - Clamp avg_vol to a reasonable maximum to avoid outlier text-based
+    //   evaluator messages or data issues producing huge contributions.
     let budget_log = budget.max(0.0).ln_1p();
-    let eligible = eligible_count as f64;
+    let eligible = (eligible_count as f64).ln_1p(); // reduce influence of raw counts
     let period = period_years;
+    let avg_vol = avg_vol.max(0.0).min(0.2); // clamp volatility to <= 20%
+    let psize = psize.max(0.0).ln_1p();
+
     let x = [
         budget_log,
         eligible,

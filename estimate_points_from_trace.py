@@ -169,6 +169,18 @@ for line in lines_iter:
                 return True
         return False
 
+    def is_overbudget_error(text: str) -> bool:
+        if not text:
+            return False
+        tl = text.lower()
+        if 'budget' in tl and any(k in tl for k in ('breach', 'breached', 'exceed', 'exceeded')):
+            return True
+        if 'budget breached' in tl or 'budget breach' in tl:
+            return True
+        if 'would exceed budget' in tl or 'exceeds budget' in tl or 'exceed budget' in tl:
+            return True
+        return False
+
     if isinstance(result, dict):
         # extract possible error text from result.error or result.response
         err_text = None
@@ -181,8 +193,11 @@ for line in lines_iter:
             # if this was a timeout/slow-response, skip this record entirely
             if is_ignored_error(err_text):
                 continue
-            # otherwise treat as an error (no actual points)
-            actual_points = None
+            # if evaluator reports an overbudget/breach, map to -2000 points; otherwise mark as missing
+            if is_overbudget_error(err_text):
+                actual_points = -2000.0
+            else:
+                actual_points = None
         else:
             # ok == True; try to parse points from the response
             resp = result.get('response')
@@ -190,13 +205,17 @@ for line in lines_iter:
                 # if response looks like an error message we also guard against that
                 if is_ignored_error(resp):
                     continue
-                try:
-                    inner = json.loads(resp)
-                    if isinstance(inner, dict) and 'points' in inner:
-                        actual_points = float(inner.get('points'))
-                except Exception:
-                    # maybe it's already JSON object; try parsing as JSON value
-                    pass
+                # if the response contains an overbudget indicator, map it to -2000
+                if is_overbudget_error(resp):
+                    actual_points = -2000.0
+                else:
+                    try:
+                        inner = json.loads(resp)
+                        if isinstance(inner, dict) and 'points' in inner:
+                            actual_points = float(inner.get('points'))
+                    except Exception:
+                        # maybe it's already JSON object; try parsing as JSON value
+                        pass
             elif isinstance(resp, dict) and 'points' in resp:
                 actual_points = float(resp.get('points'))
 

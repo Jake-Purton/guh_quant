@@ -1,27 +1,27 @@
 feature,type,n,correlation,notes,abs_corr
-parsed_profile.excluded_sectors.0,categorical,18,,best_cat=Energy; best_mean=243.6533; delta=203.6709,
-parsed_profile.name,categorical,25,,best_cat=Joseph Wright; best_mean=500.0000; delta=460.0176,
-parsed_profile.risk_tolerance,categorical,25,,best_cat=Conservative; best_mean=166.7245; delta=126.7421,
-portfolio.__sample_keys,categorical,25,,"best_cat=quantity,ticker; best_mean=39.9824; delta=0.0000",
-raw_context.message,categorical,25,,"best_cat=Joseph Wright is a 40-year-old investor who started investing in the stock market in February of 2020. His investment ended on June 12th, 2024. He has a budget of $22061 and a salary of $175973.; best_mean=500.0000; delta=460.0176",
-result.response.error,categorical,23,,best_cat=; best_mean=78.2418; delta=38.2593,
-ts,categorical,25,,best_cat=2025-11-08T17:42:53.928374+00:00; best_mean=500.0000; delta=460.0176,
-parsed_profile.excluded_sectors.1,categorical,11,,best_cat=Construction; best_mean=125.4933; delta=85.5108,
-parsed_profile.excluded_sectors.2,categorical,7,,best_cat=Manufacturing; best_mean=125.4933; delta=85.5108,
+parsed_profile.excluded_sectors.0,categorical,18,,best_cat=Energy; best_mean=243.6533; delta=331.6709,
+parsed_profile.name,categorical,25,,best_cat=Joseph Wright; best_mean=500.0000; delta=588.0176,
+parsed_profile.risk_tolerance,categorical,25,,best_cat=Conservative; best_mean=166.7245; delta=254.7421,
+portfolio.__sample_keys,categorical,25,,"best_cat=quantity,ticker; best_mean=-88.0176; delta=0.0000",
+raw_context.message,categorical,25,,"best_cat=Joseph Wright is a 40-year-old investor who started investing in the stock market in February of 2020. His investment ended on June 12th, 2024. He has a budget of $22061 and a salary of $175973.; best_mean=500.0000; delta=588.0176",
+result.response.error,categorical,23,,best_cat=; best_mean=78.2418; delta=166.2593,
+ts,categorical,25,,best_cat=2025-11-08T17:42:53.928374+00:00; best_mean=500.0000; delta=588.0176,
+parsed_profile.excluded_sectors.1,categorical,11,,best_cat=Construction; best_mean=125.4933; delta=213.5108,
+parsed_profile.excluded_sectors.2,categorical,7,,best_cat=Manufacturing; best_mean=125.4933; delta=213.5108,
 result.error,categorical,2,,"best_cat=Error - something went wrong when requesting [CODE: 418 I'm a teapot]: Error encountered while evaluation of input: [Error: budget breached (your portfolio value: 3347.0299999999997, budget: 3221)]. This is most likely a you problem. 
-; best_mean=-400.0000; delta=-439.9824",
-parsed_profile.excluded_sectors.3,categorical,2,,best_cat=Financials; best_mean=125.4933; delta=85.5108,
+; best_mean=-2000.0000; delta=-1911.9824",
+parsed_profile.excluded_sectors.3,categorical,2,,best_cat=Financials; best_mean=125.4933; delta=213.5108,
 result.response.points,numeric,23,1.0,,1.0
-portfolio.__len__,numeric,25,-0.5831712375455677,,0.5831712375455677
-result.ok,numeric,25,0.5374676714655773,,0.5374676714655773
-allocated_cost,numeric,25,-0.5031012697716941,,0.5031012697716941
+result.ok,numeric,25,0.9405708122015666,,0.9405708122015666
+allocated_cost,numeric,25,-0.41585794654781705,,0.41585794654781705
+eligible_count,numeric,25,-0.41202139662552867,,0.41202139662552867
 result.response.profit,numeric,23,-0.4018364945770767,,0.4018364945770767
-alloc_budget,numeric,25,-0.3576968040562532,,0.3576968040562532
-parsed_profile.budget,numeric,25,-0.3576968040562532,,0.3576968040562532
-parsed_profile.excluded_sectors.__len__,numeric,25,-0.3571245924450897,,0.3571245924450897
-parsed_profile.excluded_sectors.__unique_count,numeric,18,-0.34319210567984965,,0.34319210567984965
-parsed_profile.start_year,numeric,25,-0.22978967803071956,,0.22978967803071956
-parsed_profile.end_year,numeric,24,-0.19421494971198675,,0.19421494971198675
-parsed_profile.age,numeric,25,0.12253611716730838,,0.12253611716730838
-eligible_count,numeric,25,-0.052006530245753614,,0.052006530245753614
+portfolio.__len__,numeric,25,-0.4018265447935477,,0.4018265447935477
+parsed_profile.start_year,numeric,25,-0.32147843854204766,,0.32147843854204766
+alloc_budget,numeric,25,-0.29179341625224925,,0.29179341625224925
+parsed_profile.budget,numeric,25,-0.29179341625224914,,0.29179341625224914
+parsed_profile.end_year,numeric,24,-0.2875944779943614,,0.2875944779943614
+parsed_profile.age,numeric,25,0.05490658574928963,,0.05490658574928963
+parsed_profile.excluded_sectors.__unique_count,numeric,18,0.03808621016904379,,0.03808621016904379
+parsed_profile.excluded_sectors.__len__,numeric,25,0.023744635932284163,,0.023744635932284163
 result.response.passed,numeric,23,,,

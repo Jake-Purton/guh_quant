@@ -180,6 +180,20 @@ def analyze(paths: List[Path], out_csv: Path, top_n: int = 20):
                                 return True
                         return False
 
+                    def is_overbudget_error(text: str) -> bool:
+                        """Detect evaluator messages that indicate the portfolio exceeded the budget."""
+                        if not text:
+                            return False
+                        tl = text.lower()
+                        # common phrases seen in evaluator responses
+                        if 'budget' in tl and any(k in tl for k in ('breach', 'breached', 'exceed', 'exceeded')):
+                            return True
+                        if 'budget breached' in tl or 'budget breach' in tl:
+                            return True
+                        if 'would exceed budget' in tl or 'exceeds budget' in tl or 'exceed budget' in tl:
+                            return True
+                        return False
+
                     # Prefer explicit error string if present, otherwise look at response
                     err_text = None
                     if isinstance(res.get("error"), str) and res.get("error"):
@@ -193,14 +207,21 @@ def analyze(paths: List[Path], out_csv: Path, top_n: int = 20):
                             # ignore slow/expired errors
                             err_found = False
                         else:
-                            flat["__points__"] = -400
+                            # Overbudget errors get a stronger penalty
+                            if is_overbudget_error(err_text):
+                                flat["__points__"] = -2000
+                            else:
+                                flat["__points__"] = -400
                             err_found = True
                     elif err_text:
                         # Non-empty error string
                         if is_ignored_error(err_text):
                             err_found = False
                         else:
-                            flat["__points__"] = -400
+                            if is_overbudget_error(err_text):
+                                flat["__points__"] = -2000
+                            else:
+                                flat["__points__"] = -400
                             err_found = True
 
             # Also inspect flattened keys: any key ending with '.error' that
@@ -221,13 +242,29 @@ def analyze(paths: List[Path], out_csv: Path, top_n: int = 20):
                             return True
                     return False
 
+                def is_overbudget_error_text(text: str) -> bool:
+                    if not text:
+                        return False
+                    tl = str(text).lower()
+                    if 'budget' in tl and any(k in tl for k in ('breach', 'breached', 'exceed', 'exceeded')):
+                        return True
+                    if 'budget breached' in tl or 'budget breach' in tl:
+                        return True
+                    if 'would exceed budget' in tl or 'exceeds budget' in tl or 'exceed budget' in tl:
+                        return True
+                    return False
+
                 for fk, fv in flat.items():
                     if fk.split(".")[-1].lower() == "error":
                         if fv not in (None, "", []):
                             # if this error looks like a timeout/slow-response, skip
                             if is_ignored_error_text(fv):
                                 continue
-                            flat["__points__"] = -400
+                            # overbudget gets a larger penalty
+                            if is_overbudget_error_text(fv):
+                                flat["__points__"] = -2000
+                            else:
+                                flat["__points__"] = -400
                             err_found = True
                             break
 
