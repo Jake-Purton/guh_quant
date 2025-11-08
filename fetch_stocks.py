@@ -11,6 +11,8 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 # Sector keyword mappings for investor preferences
 SECTOR_KEYWORDS = {
@@ -258,109 +260,113 @@ def fetch_all_stocks(limit: int = 1000) -> List[Dict]:
     
     return stocks
 
-def fetch_historical_periods(stocks: List[Dict], start_year: int = 1980, end_year: int = 2025) -> Dict:
+def fetch_historical_periods(stocks: List[Dict], start_year: int = 1980, end_year: int = 2025, max_workers: int = 8) -> Dict:
     """
-    Fetch historical prices for 6-month periods from start_year to end_year.
-    Only fetches data for stocks that existed during each period (based on first_trading_date).
-    
+    Fetch historical prices for 3-month (calendar quarter) periods from start_year to end_year.
+    Uses multithreading to speed up Yahoo Finance data fetching.
+
     Args:
         stocks: List of stock dicts with 'ticker' and 'first_trading_date' fields
         start_year: Starting year for historical data
         end_year: Ending year for historical data
-    
-    Returns: {
-        "period_key": {
-            "AAPL": {"start_price": 100, "end_price": 110, "return_pct": 10.0},
-            ...
+        max_workers: Number of threads for concurrent requests
+
+    Returns:
+        {
+            "period_key": {
+                "AAPL": {"start_price": 100, "end_price": 110, "return_pct": 10.0},
+                ...
+            }
         }
-    }
     """
-    print(f"\n🕐 Fetching historical data for 6-month periods ({start_year}-{end_year})...")
-    print(f"   This will take a while (estimating ~{(end_year - start_year) * 2} periods)\n")
+    print(f"\n🕐 Fetching historical data for calendar-based 3-month periods ({start_year}-{end_year})...")
+    print(f"   Using up to {max_workers} threads for parallel downloads.")
+    print(f"   Estimating ~{(end_year - start_year + 1) * 4} periods total.\n")
     
     periods_data = {}
-    
-    # Generate 6-month periods
-    current_date = datetime(start_year, 1, 1)
-    end_date = datetime(end_year, 12, 31)
-    
     period_count = 0
-    while current_date < end_date:
-        # Calculate period end (6 months later)
-        period_end = current_date + timedelta(days=180)
-        if period_end > end_date:
-            period_end = end_date
+
+    # Helper function for downloading one stock
+    def fetch_stock_data(ticker: str, start_date: datetime, end_date: datetime):
+        try:
+            stock = yf.Ticker(ticker)
+            hist = stock.history(
+                start=start_date.strftime('%Y-%m-%d'),
+                end=(end_date + timedelta(days=1)).strftime('%Y-%m-%d')  # include last day
+            )
+            if not hist.empty and len(hist) >= 2:
+                start_price = hist['Close'].iloc[0]
+                end_price = hist['Close'].iloc[-1]
+                if pd.notna(start_price) and pd.notna(end_price) and start_price > 0:
+                    return {
+                        "start_price": round(float(start_price), 2),
+                        "end_price": round(float(end_price), 2),
+                        "return_pct": round(float(((end_price - start_price) / start_price) * 100), 2)
+                    }
+        except Exception:
+            pass
+        return None
+
+    # Generate calendar quarters
+    for year in range(start_year, end_year + 1):
+        quarters = [
+            (datetime(year, 1, 1), datetime(year, 3, 31)),   # Q1
+            (datetime(year, 4, 1), datetime(year, 6, 30)),   # Q2
+            (datetime(year, 7, 1), datetime(year, 9, 30)),   # Q3
+            (datetime(year, 10, 1), datetime(year, 12, 31))  # Q4
+        ]
         
-        period_key = f"{current_date.strftime('%Y-%m-%d')}_{period_end.strftime('%Y-%m-%d')}"
-        print(f"📅 Period {period_count + 1}: {period_key}")
-        
-        # Filter stocks that existed during this period
-        eligible_stocks = []
-        for stock in stocks:
-            ticker = stock['ticker']
-            first_trading_date = stock.get('first_trading_date')
+        for q_start, q_end in quarters:
+            if q_start > datetime.now():
+                break  # Skip future periods
             
-            # If we have first_trading_date, check if stock existed during period
-            if first_trading_date:
-                try:
-                    stock_start = datetime.strptime(first_trading_date, '%Y-%m-%d')
-                    # Stock must have started trading before or at period start
-                    if stock_start <= current_date:
+            period_key = f"{q_start.strftime('%Y-%m-%d')}_{q_end.strftime('%Y-%m-%d')}"
+            print(f"📅 Period {period_count + 1}: {period_key}")
+
+            # Filter eligible stocks
+            eligible_stocks = []
+            for stock in stocks:
+                ticker = stock['ticker']
+                first_trading_date = stock.get('first_trading_date')
+                if first_trading_date:
+                    try:
+                        stock_start = datetime.strptime(first_trading_date, '%Y-%m-%d')
+                        if stock_start <= q_start:
+                            eligible_stocks.append(ticker)
+                    except:
                         eligible_stocks.append(ticker)
-                except:
-                    # If date parsing fails, include the stock (benefit of doubt)
+                else:
                     eligible_stocks.append(ticker)
-            else:
-                # No trading date info, include it
-                eligible_stocks.append(ticker)
-        
-        print(f"   Eligible stocks for this period: {len(eligible_stocks)}/{len(stocks)}")
-        
-        period_data = {}
-        success_count = 0
-        
-        for i, ticker in enumerate(eligible_stocks):
-            if i % 50 == 0 and i > 0:
-                print(f"   Progress: {i}/{len(eligible_stocks)} eligible tickers...")
-            
-            try:
-                stock = yf.Ticker(ticker)
-                hist = stock.history(
-                    start=current_date.strftime('%Y-%m-%d'),
-                    end=period_end.strftime('%Y-%m-%d')
-                )
+
+            print(f"   Eligible stocks for this period: {len(eligible_stocks)}/{len(stocks)}")
+
+            period_data = {}
+            success_count = 0
+
+            # Threaded fetching
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(fetch_stock_data, ticker, q_start, q_end): ticker for ticker in eligible_stocks}
                 
-                if not hist.empty and len(hist) >= 2:
-                    start_price = hist['Close'].iloc[0]
-                    end_price = hist['Close'].iloc[-1]
-                    
-                    if pd.notna(start_price) and pd.notna(end_price) and start_price > 0:
-                        return_pct = ((end_price - start_price) / start_price) * 100
-                        period_data[ticker] = {
-                            "start_price": round(float(start_price), 2),
-                            "end_price": round(float(end_price), 2),
-                            "return_pct": round(float(return_pct), 2)
-                        }
+                for i, future in enumerate(as_completed(futures)):
+                    ticker = futures[future]
+                    result = future.result()
+                    if result:
+                        period_data[ticker] = result
                         success_count += 1
-            except Exception as e:
-                pass  # Skip failures silently
-            
-            # Rate limiting
-            if i % 10 == 0:
-                time.sleep(0.1)
-        
-        periods_data[period_key] = period_data
-        print(f"   ✅ Cached {success_count}/{len(eligible_stocks)} stocks for this period\n")
-        
-        # Move to next period
-        current_date = period_end
-        period_count += 1
-        
-        # Longer pause between periods
-        time.sleep(1)
-    
+                    if (i + 1) % 50 == 0:
+                        print(f"   Progress: {i + 1}/{len(eligible_stocks)} tickers...")
+
+            periods_data[period_key] = period_data
+            print(f"   ✅ Cached {success_count}/{len(eligible_stocks)} stocks for this period\n")
+
+            period_count += 1
+
+            # small cooldown between quarters
+            time.sleep(1)
+
     print(f"✅ Completed historical data for {period_count} periods\n")
     return periods_data
+
 
 def generate_metadata() -> Dict:
     """Generate metadata about sector keywords."""
