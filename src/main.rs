@@ -1,6 +1,7 @@
 mod investor;
 mod stocks;
 mod portfolio;
+mod points;
 
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use serde_json::{json, Value};
@@ -9,6 +10,7 @@ use std::error::Error;
 use investor::InvestorProfile;
 use stocks::{Stock, prefetch_all_stocks, fetch_historical_returns};
 use portfolio::{filter_stocks_by_profile, build_portfolio};
+use std::collections::HashMap;
 
 const URL: &str = "http://www.prism-challenge.com";
 const PORT: u16 = 8082;
@@ -160,7 +162,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("[INFO] Using interpolated prices from cached data (Phase 2 disabled)");
             
             // Submit portfolio with interpolated prices
-            print_portfolio_and_submit(&portfolio, &eligible_stocks, &profile).await?;
+                // Validate/clean portfolio before the single allowed submit
+                let cleaned = pre_submit_validate(&portfolio, &eligible_stocks, profile.budget);
+                print_portfolio_and_submit(&cleaned, &eligible_stocks, &profile).await?;
         } else {
             println!("error in profile skipping")
         }
@@ -179,21 +183,22 @@ async fn print_portfolio_and_submit(
     let mut total_cost = 0.0;
     for (ticker, qty) in portfolio {
         let stock = eligible_stocks.iter().find(|s| s.ticker == *ticker).unwrap();
-        let purchase_price = stock.get_purchase_price();
-        let cost = purchase_price * (*qty as f64);
+        // Use current market price for displayed/submitted cost so it matches evaluator
+        let current_price = stock.get_current_price();
+        let cost = current_price * (*qty as f64);
         total_cost += cost;
-        
-        // Show both current and historical prices for debugging
+
+        // Show current price and historical start price (if available)
         if let Some(hist_price) = stock.historical_start_price {
             println!(
                 "  {} x{} @ ${:.2} current (${:.2} historical → {:.1}% return) = ${:.2}",
-                ticker, qty, purchase_price, hist_price,
+                ticker, qty, current_price, hist_price,
                 stock.historical_return.unwrap_or(0.0), cost
             );
         } else {
             println!(
                 "  {} x{} @ ${:.2} = ${:.2}",
-                ticker, qty, purchase_price, cost
+                ticker, qty, current_price, cost
             );
         }
     }
@@ -212,4 +217,63 @@ async fn print_portfolio_and_submit(
     }
     
     Ok(())
+}
+
+/// Pre-submit validator: remove unknown tickers and force portfolio within budget.
+fn pre_submit_validate(
+    portfolio: &[(String, i32)],
+    eligible_stocks: &[Stock],
+    budget: f64,
+) -> Vec<(String, i32)> {
+    // Build a lookup of current prices
+    let price_map: HashMap<String, f64> = eligible_stocks
+        .iter()
+        .map(|s| (s.ticker.clone(), s.get_current_price()))
+        .collect();
+
+    // Keep only tickers that are in eligible_stocks and have positive qty
+    let mut cleaned: Vec<(String, i32)> = portfolio.iter()
+        .filter(|(t, q)| *q > 0 && price_map.contains_key(t))
+        .cloned()
+        .collect();
+
+    // Compute current total cost
+    let mut total: f64 = cleaned.iter().map(|(t, q)| price_map.get(t).unwrap() * (*q as f64)).sum();
+
+    // If already within budget, return as-is
+    if total <= budget { return cleaned; }
+
+    eprintln!("[VALIDATOR] Portfolio exceeds budget before submit: ${:.2} > ${:.2}. Reducing...", total, budget);
+
+    // Sort positions by price descending (drop most expensive shares first)
+    cleaned.sort_by(|a, b| {
+        let pa = *price_map.get(&a.0).unwrap_or(&0.0);
+        let pb = *price_map.get(&b.0).unwrap_or(&0.0);
+        pb.partial_cmp(&pa).unwrap()
+    });
+
+    // Iteratively reduce quantities from the most expensive position until under budget
+    let mut idx = 0;
+    while total > budget && !cleaned.is_empty() {
+        if idx >= cleaned.len() { idx = 0; } // wrap
+
+        let (ref ticker, ref mut qty) = cleaned[idx];
+        let price = *price_map.get(ticker).unwrap_or(&0.0);
+        if *qty > 0 && price > 0.0 {
+            *qty -= 1;
+            total -= price;
+            if *qty == 0 {
+                cleaned.remove(idx);
+                // don't increment idx (next element shifted into this index)
+            } else {
+                idx += 1;
+            }
+        } else {
+            // remove impossible position
+            cleaned.remove(idx);
+        }
+    }
+
+    eprintln!("[VALIDATOR] Reduced portfolio cost to ${:.2}", total);
+    cleaned
 }

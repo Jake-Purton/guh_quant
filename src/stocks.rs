@@ -36,6 +36,8 @@ struct StockCache {
     stocks: Vec<Stock>,
     #[serde(default)]
     historical_periods: Option<HashMap<String, HashMap<String, HistoricalData>>>,
+    #[serde(default)]
+    monthly_prices: Option<HashMap<String, MonthlyPriceData>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -47,6 +49,9 @@ struct Metadata {
     sector_keywords: HashMap<String, Vec<String>>,
     #[allow(dead_code)]
     sectors: Vec<String>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    format: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -57,8 +62,22 @@ struct HistoricalData {
     return_pct: f64,
 }
 
-// Global cache for historical periods
+#[derive(Debug, Clone, Deserialize)]
+struct MonthlyPriceData {
+    dates: Vec<String>,    // Format: "YYYY-MM"
+    prices: Vec<f64>,
+    #[allow(dead_code)]
+    first_trading: String,
+    #[allow(dead_code)]
+    last_trading: String,
+    #[allow(dead_code)]
+    data_points: usize,
+}
+
+// Global cache for historical periods (legacy)
 static mut HISTORICAL_PERIODS_CACHE: Option<HashMap<String, HashMap<String, HistoricalData>>> = None;
+// Global cache for monthly prices (new, faster approach)
+static mut MONTHLY_PRICES_CACHE: Option<HashMap<String, MonthlyPriceData>> = None;
 
 impl Stock {
     /// Get the price to use for portfolio quantity calculations.
@@ -67,6 +86,13 @@ impl Stock {
         // Use historical start price if available (backtesting scenario)
         // Otherwise fall back to current price
         self.historical_start_price.unwrap_or(self.price)
+    }
+
+    /// Current market price used for submission/budget calculations.
+    /// This ensures budget math aligns with submission evaluation which
+    /// typically uses current prices rather than historical start prices.
+    pub fn get_current_price(&self) -> f64 {
+        self.price
     }
 }
 
@@ -82,32 +108,132 @@ pub fn load_stocks_from_cache(cache_file: &str) -> Result<Vec<Stock>, Box<dyn Er
              cache.stocks.len(), 
              cache.metadata.generated_at);
     
-    // Store historical periods in global cache
-    if let Some(periods) = cache.historical_periods {
-        println!("[CACHE] Loaded {} historical periods from cache", periods.len());
+    // Check for new monthly prices format (preferred)
+    if let Some(monthly_data) = cache.monthly_prices {
+        println!("[CACHE] Using MONTHLY price format - {} stocks with monthly data", monthly_data.len());
+        let total_datapoints: usize = monthly_data.values().map(|d| d.data_points).sum();
+        println!("[CACHE] Total monthly datapoints: {}", total_datapoints);
+        unsafe {
+            MONTHLY_PRICES_CACHE = Some(monthly_data);
+        }
+    } 
+    // Fallback to old historical periods format
+    else if let Some(periods) = cache.historical_periods {
+        println!("[CACHE] Using legacy PERIOD format - {} historical periods", periods.len());
+        println!("[WARN] Consider running 'python3 fetch_monthly_cache.py' for better accuracy!");
         unsafe {
             HISTORICAL_PERIODS_CACHE = Some(periods);
         }
     } else {
-        println!("[WARN] No historical periods in cache - will use API fallback");
+        println!("[WARN] No historical data in cache - will use API fallback");
     }
     
     Ok(cache.stocks)
 }
 
 pub async fn prefetch_all_stocks() -> Result<Vec<Stock>, Box<dyn Error>> {
-    // Try to load from cache first
+    // Try monthly cache first (preferred, faster, more accurate)
+    if let Ok(stocks) = load_stocks_from_cache("stocks_cache_monthly.json") {
+        println!("[CACHE] Using monthly price cache (optimal)\n");
+        return Ok(stocks);
+    }
+    
+    // Fallback to legacy cache
     match load_stocks_from_cache("stocks_cache.json") {
         Ok(stocks) => {
-            println!("[CACHE] Using cached stock data\n");
+            println!("[CACHE] Using legacy period cache\n");
             Ok(stocks)
         }
         Err(e) => {
-            println!("[WARN] Cache not found: {}", e);
-            println!("[INFO] Run 'python3 fetch_stocks.py' to generate the cache file\n");
+            println!("[WARN] No cache found: {}", e);
+            println!("[INFO] Run 'python3 fetch_monthly_cache.py' for best performance");
+            println!("[INFO] Or run 'python3 fetch_stocks.py' for legacy cache\n");
             Err(e)
         }
     }
+}
+
+/// Get price for a specific stock on a specific date using monthly cache
+/// Uses binary search and linear interpolation for accuracy
+fn get_monthly_price(ticker: &str, target_date: &str) -> Option<f64> {
+    let target_month = &target_date[..7]; // Extract "YYYY-MM"
+    let target = chrono::NaiveDate::parse_from_str(target_date, "%Y-%m-%d").ok()?;
+    
+    unsafe {
+        let cache = MONTHLY_PRICES_CACHE.as_ref()?;
+        let stock_data = cache.get(ticker)?;
+        
+        // Binary search for the month
+        match stock_data.dates.binary_search_by(|month| month.as_str().cmp(target_month)) {
+            // Exact month match
+            Ok(idx) => Some(stock_data.prices[idx]),
+            
+            // Month not found - interpolate between adjacent months
+            Err(idx) => {
+                if idx == 0 {
+                    // Before first data point
+                    Some(stock_data.prices[0])
+                } else if idx >= stock_data.dates.len() {
+                    // After last data point
+                    Some(*stock_data.prices.last()?)
+                } else {
+                    // Interpolate between months
+                    let before_month = &stock_data.dates[idx - 1];
+                    let after_month = &stock_data.dates[idx];
+                    
+                    let before_date = chrono::NaiveDate::parse_from_str(&format!("{}-01", before_month), "%Y-%m-%d").ok()?;
+                    let after_date = chrono::NaiveDate::parse_from_str(&format!("{}-01", after_month), "%Y-%m-%d").ok()?;
+                    
+                    let total_days = (after_date - before_date).num_days() as f64;
+                    let target_days = (target - before_date).num_days() as f64;
+                    let ratio = (target_days / total_days).clamp(0.0, 1.0);
+                    
+                    let interpolated = linear_interpolate(
+                        stock_data.prices[idx - 1],
+                        stock_data.prices[idx],
+                        ratio
+                    );
+                    
+                    Some(interpolated)
+                }
+            }
+        }
+    }
+}
+
+/// Fetch historical returns using monthly price cache (NEW, FASTER METHOD)
+fn fetch_from_monthly_cache(stocks: &mut [Stock], start_date: &str, end_date: &str) -> Result<bool, Box<dyn Error>> {
+    unsafe {
+        if MONTHLY_PRICES_CACHE.is_none() {
+            return Ok(false);
+        }
+    }
+    
+    println!("[CACHE] Using monthly price data for period {} to {}", start_date, end_date);
+    
+    let mut hits = 0;
+    let mut misses = 0;
+    
+    for stock in stocks.iter_mut() {
+        if let (Some(start_price), Some(end_price)) = 
+            (get_monthly_price(&stock.ticker, start_date), get_monthly_price(&stock.ticker, end_date)) {
+            
+            if start_price > 0.0 {
+                let return_pct = ((end_price - start_price) / start_price) * 100.0;
+                stock.historical_return = Some(return_pct);
+                stock.historical_start_price = Some(start_price);
+                hits += 1;
+            } else {
+                misses += 1;
+            }
+        } else {
+            misses += 1;
+        }
+    }
+    
+    println!("[CACHE] Monthly lookup: {} hits, {} misses", hits, misses);
+    
+    Ok(hits > 0)
 }
 
 /// Parse a period key (format: "YYYY-MM-DD_YYYY-MM-DD") into start and end dates
@@ -298,21 +424,26 @@ fn fetch_from_cache(stocks: &mut [Stock], start_date: &str, end_date: &str) -> R
 }
 
 /// Fetch historical returns for stocks during a specific date range
-/// First tries cached data with interpolation, falls back to API if unavailable
+/// First tries monthly cache (fast, accurate), then period cache, then API fallback
 pub async fn fetch_historical_returns(
     stocks: &mut [Stock], 
     start_date: &str,  // Format: YYYY-MM-DD
     end_date: &str     // Format: YYYY-MM-DD
 ) -> Result<(), Box<dyn Error>> {
-    // Try cache first
+    // Priority 1: Try monthly price cache (NEW, FAST, ACCURATE)
+    if fetch_from_monthly_cache(stocks, start_date, end_date)? {
+        return Ok(());
+    }
+    
+    // Priority 2: Try legacy period cache
     if fetch_from_cache(stocks, start_date, end_date)? {
         return Ok(());
     }
     
-    // Fallback to Yahoo Finance API (slow)
+    // Priority 3: Fallback to Yahoo Finance API (slow)
     println!("[WARN] Falling back to API for historical data...");
     println!("[WARN] This will be VERY SLOW (~10 seconds per stock)");
-    println!("[WARN] RECOMMENDATION: Run 'python3 fetch_stocks.py' to generate cache first!");
+    println!("[WARN] RECOMMENDATION: Run 'python3 fetch_monthly_cache.py' to generate cache!");
     
     fetch_from_yahoo_api(stocks, start_date, end_date).await
 }
