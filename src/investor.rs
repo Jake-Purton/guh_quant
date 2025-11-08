@@ -40,7 +40,7 @@ impl InvestorProfile {
         let budget = Self::extract_money(&msg_lower, r"budget of \$([0-9,]+)")
             .or_else(|| Self::extract_money(&msg_lower, r"total budget of \$([0-9,]+)"))
             .or_else(|| Self::extract_money(&msg_lower, r"\$([0-9,]+)"))
-            .unwrap_or(1000000000000.0);
+            .unwrap_or(2000.0);
 
         // Extract name (first two capitalized words)
         let name = msg
@@ -53,9 +53,12 @@ impl InvestorProfile {
         let excluded_sectors = Self::extract_excluded_sectors(&msg_lower);
 
         // Extract investment dates
-        let start_year = Self::extract_year(&msg_lower, r"start.*?(\d{4})")
+        // Try multiple patterns to catch "start date is 2008-08-22" or "start 2008"
+        let start_year = Self::extract_year(&msg_lower, r"start.*?date.*?(\d{4})")
+            .or_else(|| Self::extract_year(&msg_lower, r"start.*?(\d{4})"))
             .or_else(|| Self::extract_year(msg, r"(?:january|february|march|april|may|june|july|august|september|october|november|december).*?(\d{4})"));
-        let end_year = Self::extract_year(&msg_lower, r"end.*?(\d{4})");
+        let end_year = Self::extract_year(&msg_lower, r"end.*?date.*?(\d{4})")
+            .or_else(|| Self::extract_year(&msg_lower, r"end.*?(\d{4})"));
 
         // Determine risk level
         let risk_tolerance = match age {

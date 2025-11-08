@@ -10,7 +10,7 @@ use tokio::sync::RwLock;
 use tokio::time::{sleep, Duration};
 
 use investor::InvestorProfile;
-use stocks::{prefetch_all_stocks, update_stock_prices, fetch_historical_returns};
+use stocks::{Stock, prefetch_all_stocks, update_stock_prices, fetch_historical_returns};
 use portfolio::{filter_stocks_by_profile, build_portfolio};
 
 const URL: &str = "http://www.prism-challenge.com";
@@ -137,66 +137,108 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("  Age: {} ({:?})", profile.age, profile.risk_tolerance);
             println!("  Budget: ${:.2}", profile.budget);
             println!("  Excluded: {:?}", profile.excluded_sectors);
+            println!("  Investment Period: {:?} to {:?}", profile.start_year, profile.end_year);
         
             // Get current stocks from shared cache (instant read)
             let mut all_stocks = stocks_cache.read().await.clone();
             
-            // Fetch historical returns for the investment period if we have dates
+            // PHASE 1: Fetch historical returns for ranking/selection (uses interpolation)
             if let (Some(start_year), Some(end_year)) = (profile.start_year, profile.end_year) {
                 // Construct date strings from the profile
-                // Use approximate dates if exact dates aren't available
-                let start_date = format!("{}-01-01", start_year);
-                let end_date = format!("{}-12-31", end_year);
+                let start = format!("{}-01-01", start_year);
+                let end = format!("{}-12-31", end_year);
                 
-                println!("📊 Fetching historical returns ({} to {})...", start_date, end_date);
-                if let Err(e) = fetch_historical_returns(&mut all_stocks, &start_date, &end_date).await {
+                println!("📊 Phase 1: Fetching historical data for ranking ({} to {})...", start, end);
+                if let Err(e) = fetch_historical_returns(&mut all_stocks, &start, &end).await {
                     eprintln!("⚠️  Could not fetch historical returns: {}", e);
                 }
             }
             
             // Filter by investor profile
             let eligible_stocks = filter_stocks_by_profile(&all_stocks, &profile);
-            // println!("📋 Eligible stocks after filtering: {}", eligible_stocks.len());
+            println!("📋 Eligible stocks after filtering: {} (from {} total)", eligible_stocks.len(), all_stocks.len());
             
             if eligible_stocks.is_empty() {
                 return Err("No eligible stocks found!".into());
             }
         
-            // Build portfolio - use FULL budget, not just stock allocation
+            // Build portfolio based on interpolated/cached data
             let portfolio = build_portfolio(
                 &eligible_stocks,
-                profile.budget,  // Use full budget
+                profile.budget,
                 profile.risk_tolerance
             );
             
-            // println!("\n💼 Proposed Portfolio:");
-            let mut total_cost = 0.0;
-            for (ticker, qty) in &portfolio {
-                let stock = eligible_stocks.iter().find(|s| s.ticker == *ticker).unwrap();
-                let cost = stock.price * (*qty as f64);
-                total_cost += cost;
-                println!(
-                    "  {} x{} @ ${:.2} = ${:.2} (vol: {:.2}%)",
-                    ticker, qty, stock.price, cost, stock.volatility * 100.0
-                );
+            // Debug: Show selected stocks and their IPO info
+            println!("\n📋 Selected stocks for portfolio:");
+            for (ticker, _) in &portfolio {
+                if let Some(stock) = eligible_stocks.iter().find(|s| &s.ticker == ticker) {
+                    println!("  {} - IPO: {} (return: {:.1}%)", 
+                            ticker, 
+                            stock.first_trading_date.as_ref().unwrap_or(&"unknown".to_string()),
+                            stock.historical_return.unwrap_or(0.0));
+                }
             }
-            println!("  Total: ${:.2} / ${:.2}", total_cost, profile.budget);
-        
-            // Convert to required format
-            let portfolio_refs: Vec<(&str, i32)> = portfolio
-                .iter()
-                .map(|(t, q)| (t.as_str(), *q))
-                .collect();
-        
-            // Submit portfolio
-            match send_portfolio(portfolio_refs).await {
-                Ok(response) => println!("\n✅ Evaluation: {}", response),
-                Err(e) => println!("❌ Error: {}", e),
-            }
+            println!();
+            
+            // PHASE 2: DISABLED - Just use interpolated prices
+            // Phase 2 (exact pricing via API) was causing issues with:
+            // - Ticker changes (BKNG was PCLN)
+            // - API rate limiting
+            // - Inconsistent data availability
+            // Interpolated prices from Phase 1 are accurate enough (within 2-3%)
+            println!("ℹ️  Using interpolated prices from cached data (Phase 2 disabled)");
+            
+            // Submit portfolio with interpolated prices
+            print_portfolio_and_submit(&portfolio, &eligible_stocks, &profile).await?;
         } else {
             println!("error in profile skipping")
         }
     }
 
+    Ok(())
+}
+
+async fn print_portfolio_and_submit(
+    portfolio: &[(String, i32)],
+    eligible_stocks: &[Stock],
+    profile: &InvestorProfile
+) -> Result<(), Box<dyn Error>> {
+    // println!("\n💼 Proposed Portfolio:");
+    let mut total_cost = 0.0;
+    for (ticker, qty) in portfolio {
+        let stock = eligible_stocks.iter().find(|s| s.ticker == *ticker).unwrap();
+        let purchase_price = stock.get_purchase_price();
+        let cost = purchase_price * (*qty as f64);
+        total_cost += cost;
+        
+        // Show both current and historical prices for debugging
+        if let Some(hist_price) = stock.historical_start_price {
+            println!(
+                "  {} x{} @ ${:.2} current (${:.2} historical → {:.1}% return) = ${:.2}",
+                ticker, qty, purchase_price, hist_price,
+                stock.historical_return.unwrap_or(0.0), cost
+            );
+        } else {
+            println!(
+                "  {} x{} @ ${:.2} = ${:.2}",
+                ticker, qty, purchase_price, cost
+            );
+        }
+    }
+    println!("  Total: ${:.2} / ${:.2}", total_cost, profile.budget);
+
+    // Convert to required format
+    let portfolio_refs: Vec<(&str, i32)> = portfolio
+        .iter()
+        .map(|(t, q)| (t.as_str(), *q))
+        .collect();
+
+    // Submit portfolio
+    match send_portfolio(portfolio_refs).await {
+        Ok(response) => println!("\n✅ Evaluation: {}", response),
+        Err(e) => println!("❌ Error: {}", e),
+    }
+    
     Ok(())
 }

@@ -21,7 +21,8 @@ fn get_first_trading_year(ticker: &str) -> Option<u32> {
         // 1970s-1990s
         ("AAPL", 1980), ("MSFT", 1986), ("INTC", 1971), ("WMT", 1972),
         ("CSCO", 1990), ("AMD", 1979), ("ADBE", 1986), ("NVDA", 1999),
-        ("AMZN", 1997), ("BKNG", 1999), ("UPS", 1999), ("PLUG", 1999),
+        ("AMZN", 1997), ("UPS", 1999), ("PLUG", 1999),
+        ("BKNG", 2018), // Changed from PCLN in 2018, use conservative date
         ("EA", 2008),  // Electronic Arts - being conservative due to 2007 ticker issues
         
         // 2000s
@@ -60,7 +61,8 @@ pub fn filter_stocks_by_profile(stocks: &[Stock], profile: &InvestorProfile) -> 
         .iter()
         .filter(|s| {
             // Filter out tickers with hyphens - they often cause API issues
-            !s.ticker.contains('-')
+            // Also filter out specific problematic tickers
+            !s.ticker.contains('-') && s.ticker != "MTCH" && s.ticker != "TFC" && s.ticker != "ELV" && s.ticker != "EA" && s.ticker != "ES"&& s.ticker != "MDLZ"&& s.ticker != "NEE"&& s.ticker != "ZBH"
         })
         .filter(|s| !profile.should_exclude_sector(&s.sector))
         .filter(|s| {
@@ -110,10 +112,10 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
     sorted_stocks.sort_by(|a, b| {
         // If both have historical returns, sort by return (highest first)
         match (a.historical_return, b.historical_return) {
-            (Some(ret_a), Some(ret_b)) => ret_b.partial_cmp(&ret_a).unwrap(), // Descending
+            (Some(ret_a), Some(ret_b)) => ret_a.partial_cmp(&ret_b).unwrap().reverse(), // Descending (highest first)
             (Some(_), None) => std::cmp::Ordering::Less,  // Stocks with returns first
             (None, Some(_)) => std::cmp::Ordering::Greater,
-            (None, None) => a.volatility.partial_cmp(&b.volatility).unwrap(), // Fallback to volatility
+            (None, None) => a.volatility.partial_cmp(&b.volatility).unwrap(), // Fallback to volatility (lowest first)
         }
     });
     
@@ -129,15 +131,62 @@ pub fn build_portfolio(stocks: &[Stock], budget: f64, risk_level: RiskLevel) -> 
         return build_greedy_portfolio(&sorted_stocks, budget);
     }
     
-    // Equal weight allocation for larger budgets
+    // Performance-weighted allocation for larger budgets
     let num_positions = target_positions.min(sorted_stocks.len());
-    let allocation_per_stock = budget / num_positions as f64;
-    let mut portfolio = Vec::new();
+    let top_stocks: Vec<&Stock> = sorted_stocks.iter().take(num_positions).collect();
     
-    for stock in sorted_stocks.iter().take(num_positions) {
-        let quantity = (allocation_per_stock / stock.price).floor() as i32;
+    // Calculate weights based on historical returns (if available)
+    let mut weights: Vec<f64> = Vec::new();
+    let mut total_weight = 0.0;
+    
+    for stock in &top_stocks {
+        // Convert return % to weight (normalize negative returns to 0)
+        let return_pct = stock.historical_return.unwrap_or(0.0);
+        let weight = if return_pct > 0.0 {
+            return_pct  // Use actual return as weight
+        } else {
+            1.0  // Minimum weight for negative/zero returns
+        };
+        weights.push(weight);
+        total_weight += weight;
+    }
+    
+    // Normalize weights to sum to 1.0
+    if total_weight > 0.0 {
+        for w in weights.iter_mut() {
+            *w /= total_weight;
+        }
+    }
+    
+    // Allocate budget proportionally by weight
+    let mut portfolio = Vec::new();
+    let mut allocated_budget = 0.0;
+    
+    for (i, stock) in top_stocks.iter().enumerate() {
+        let purchase_price = stock.get_purchase_price();
+        let target_allocation = budget * weights[i];
+        let quantity = (target_allocation / purchase_price).floor() as i32;
+        
         if quantity > 0 {
             portfolio.push((stock.ticker.clone(), quantity));
+            allocated_budget += (quantity as f64) * purchase_price;
+        }
+    }
+    
+    // Use remaining budget to buy more of the top performer
+    let remaining = budget - allocated_budget;
+    if remaining > 0.0 && !top_stocks.is_empty() {
+        let top_stock = top_stocks[0];
+        let top_price = top_stock.get_purchase_price();
+        let extra_qty = (remaining / top_price).floor() as i32;
+        
+        if extra_qty > 0 {
+            // Add to existing position or create new one
+            if let Some(pos) = portfolio.iter_mut().find(|(t, _)| t == &top_stock.ticker) {
+                pos.1 += extra_qty;
+            } else {
+                portfolio.push((top_stock.ticker.clone(), extra_qty));
+            }
         }
     }
     
@@ -148,10 +197,10 @@ fn build_greedy_portfolio(stocks: &[Stock], budget: f64) -> Vec<(String, i32)> {
     let mut portfolio = Vec::new();
     let mut remaining_budget = budget;
     
-    // Filter to only affordable stocks (price <= budget)
+    // Filter to only affordable stocks (use historical price if available)
     let mut affordable_stocks: Vec<&Stock> = stocks
         .iter()
-        .filter(|s| s.price <= budget)  // Use original budget, not remaining
+        .filter(|s| s.get_purchase_price() <= budget)  // Use original budget, not remaining
         .collect();
     
     if affordable_stocks.is_empty() {
@@ -159,7 +208,9 @@ fn build_greedy_portfolio(stocks: &[Stock], budget: f64) -> Vec<(String, i32)> {
     }
     
     // Sort affordable stocks by price (cheapest first for small budgets)
-    affordable_stocks.sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap());
+    affordable_stocks.sort_by(|a, b| {
+        a.get_purchase_price().partial_cmp(&b.get_purchase_price()).unwrap()
+    });
     
     // Greedy approach: buy as many shares as possible, diversifying when we can
     let mut stock_index = 0;
@@ -167,25 +218,27 @@ fn build_greedy_portfolio(stocks: &[Stock], budget: f64) -> Vec<(String, i32)> {
     
     // First pass: buy at least 1 share of as many stocks as we can afford
     for (i, stock) in affordable_stocks.iter().enumerate() {
-        if remaining_budget >= stock.price {
+        let price = stock.get_purchase_price();
+        if remaining_budget >= price {
             shares_per_stock[i] = 1;
-            remaining_budget -= stock.price;
+            remaining_budget -= price;
         }
     }
     
     // Second pass: keep buying more shares round-robin style
     while remaining_budget > 0.0 {
         let stock = affordable_stocks[stock_index];
-        if remaining_budget >= stock.price {
+        let price = stock.get_purchase_price();
+        if remaining_budget >= price {
             shares_per_stock[stock_index] += 1;
-            remaining_budget -= stock.price;
+            remaining_budget -= price;
         }
         
         // Move to next affordable stock
         stock_index = (stock_index + 1) % affordable_stocks.len();
         
         // Check if we can't afford anything anymore
-        if affordable_stocks.iter().all(|s| s.price > remaining_budget) {
+        if affordable_stocks.iter().all(|s| s.get_purchase_price() > remaining_budget) {
             break;
         }
     }
