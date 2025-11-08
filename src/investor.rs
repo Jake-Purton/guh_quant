@@ -34,13 +34,13 @@ impl InvestorProfile {
         // If no age is provided, default to 45 (moderate risk)
         let age = Self::extract_number(&msg_lower, r"(\d+)-year-old")
             .or_else(|| Self::extract_number(&msg_lower, r"(\d+)\s+years?\s+old"))
-            .unwrap_or(45);
+            .ok_or("no age")?;
 
         // Extract budget - pattern: "budget of $X" or "$X"
         let budget = Self::extract_money(&msg_lower, r"budget of \$([0-9,]+)")
             .or_else(|| Self::extract_money(&msg_lower, r"total budget of \$([0-9,]+)"))
             .or_else(|| Self::extract_money(&msg_lower, r"\$([0-9,]+)"))
-            .unwrap_or(2000.0);
+            .ok_or("no")?;
 
         // Extract name (first two capitalized words)
         let name = msg

@@ -5,12 +5,9 @@ mod portfolio;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use serde_json::{json, Value};
 use std::error::Error;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use tokio::time::{sleep, Duration};
 
 use investor::InvestorProfile;
-use stocks::{Stock, prefetch_all_stocks, update_stock_prices, fetch_historical_returns};
+use stocks::{Stock, prefetch_all_stocks, fetch_historical_returns};
 use portfolio::{filter_stocks_by_profile, build_portfolio};
 
 const URL: &str = "http://www.prism-challenge.com";
@@ -92,28 +89,11 @@ async fn send_portfolio(weighted_stocks: Vec<(&str, i32)>) -> Result<String, Box
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // Load initial stock data from cache
-    println!("🚀 Loading initial stock data...");
-    let initial_stocks = prefetch_all_stocks().await?;
+    // Load initial stock data from cache (metadata + structure)
+    println!("[LOAD] Loading initial stock data...");
+    let stock_metadata = prefetch_all_stocks().await?;
     
-    // Create shared state with Arc + RwLock for thread-safe access
-    let stocks_cache = Arc::new(RwLock::new(initial_stocks));
-    
-    // Spawn background task to update prices every 60 seconds
-    let stocks_cache_clone = Arc::clone(&stocks_cache);
-    tokio::spawn(async move {
-        loop {
-            sleep(Duration::from_secs(60)).await;
-            
-            let mut stocks = stocks_cache_clone.write().await;
-            println!("⏰ Background: Updating stock prices...");
-            if let Err(e) = update_stock_prices(&mut stocks).await {
-                eprintln!("[ERROR] Background price update failed: {}", e);
-            }
-        }
-    });
-    
-    println!("[INFO] Background price updater started (updates every 60s)\n");
+    println!("[INFO] Loaded {} stocks from cache\n", stock_metadata.len());
 
     loop {
         // Get and parse context
@@ -129,8 +109,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("  Excluded: {:?}", profile.excluded_sectors);
             println!("  Investment Period: {:?} to {:?}", profile.start_year, profile.end_year);
         
-            // Get current stocks from shared cache (instant read)
-            let mut all_stocks = stocks_cache.read().await.clone();
+            // Clone stock metadata for this request
+            let mut all_stocks = stock_metadata.clone();
             
             // PHASE 1: Fetch historical returns for ranking/selection (uses interpolation)
             if let (Some(start_year), Some(end_year)) = (profile.start_year, profile.end_year) {

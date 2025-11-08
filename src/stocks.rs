@@ -110,53 +110,6 @@ pub async fn prefetch_all_stocks() -> Result<Vec<Stock>, Box<dyn Error>> {
     }
 }
 
-/// Update stock prices from Yahoo Finance API
-pub async fn update_stock_prices(stocks: &mut [Stock]) -> Result<(), Box<dyn Error>> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(5))
-        .build()?;
-    
-    let mut success_count = 0;
-    let mut fail_count = 0;
-    
-    for stock in stocks.iter_mut() {
-        // Yahoo Finance quote API endpoint
-        let url = format!(
-            "https://query1.finance.yahoo.com/v8/finance/chart/{}?interval=1d&range=1d",
-            stock.ticker
-        );
-        
-        match client.get(&url).send().await {
-            Ok(resp) => {
-                if let Ok(text) = resp.text().await {
-                    // Parse the JSON response to extract current price
-                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&text) {
-                        if let Some(result) = json["chart"]["result"].as_array() {
-                            if let Some(first) = result.first() {
-                                if let Some(quote) = first["meta"]["regularMarketPrice"].as_f64() {
-                                    stock.price = (quote * 100.0).round() / 100.0; // Round to 2 decimals
-                                    success_count += 1;
-                                    continue;
-                                }
-                            }
-                        }
-                    }
-                }
-                fail_count += 1;
-            }
-            Err(_) => {
-                fail_count += 1;
-            }
-        }
-    }
-    
-    if success_count > 0 {
-        println!("[UPDATE] Updated {} stock prices ({} failed)", success_count, fail_count);
-    }
-    
-    Ok(())
-}
-
 /// Parse a period key (format: "YYYY-MM-DD_YYYY-MM-DD") into start and end dates
 fn parse_period_key(period_key: &str) -> Option<(chrono::NaiveDate, chrono::NaiveDate)> {
     let parts: Vec<&str> = period_key.split('_').collect();
