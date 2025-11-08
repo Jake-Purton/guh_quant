@@ -163,20 +163,70 @@ def analyze(paths: List[Path], out_csv: Path, top_n: int = 20):
             if isinstance(rec, dict):
                 res = rec.get("result")
                 if isinstance(res, dict):
+                    # Some evaluator errors are from timeouts or expired context
+                    # (e.g. "Context expired, you responded too slowly"). These
+                    # should be ignored by the heuristic rather than penalized.
+                    ignore_patterns = [
+                        'too slow', 'responded too slowly', 'context expired',
+                        'timed out', 'timeout', 'expired', 'context deadline'
+                    ]
+
+                    def is_ignored_error(text: str) -> bool:
+                        if not text:
+                            return False
+                        tl = text.lower()
+                        for p in ignore_patterns:
+                            if p in tl:
+                                return True
+                        return False
+
+                    # Prefer explicit error string if present, otherwise look at response
+                    err_text = None
+                    if isinstance(res.get("error"), str) and res.get("error"):
+                        err_text = res.get("error")
+                    elif isinstance(res.get("response"), str) and res.get("response"):
+                        # sometimes the response contains an inline error message
+                        err_text = res.get("response")
+
                     if res.get("ok") is False:
-                        flat["__points__"] = -400
-                        err_found = True
-                    elif res.get("error"):
+                        if is_ignored_error(err_text):
+                            # ignore slow/expired errors
+                            err_found = False
+                        else:
+                            flat["__points__"] = -400
+                            err_found = True
+                    elif err_text:
                         # Non-empty error string
-                        flat["__points__"] = -400
-                        err_found = True
+                        if is_ignored_error(err_text):
+                            err_found = False
+                        else:
+                            flat["__points__"] = -400
+                            err_found = True
 
             # Also inspect flattened keys: any key ending with '.error' that
             # has a non-empty value indicates an error to penalize.
             if not err_found:
+                # Inspect flattened '.error' keys, but ignore known timeout/slow messages
+                ignore_patterns = [
+                    'too slow', 'responded too slowly', 'context expired',
+                    'timed out', 'timeout', 'expired', 'context deadline'
+                ]
+
+                def is_ignored_error_text(text: str) -> bool:
+                    if not text:
+                        return False
+                    tl = str(text).lower()
+                    for p in ignore_patterns:
+                        if p in tl:
+                            return True
+                    return False
+
                 for fk, fv in flat.items():
                     if fk.split(".")[-1].lower() == "error":
-                        if fv not in (None, "", []) :
+                        if fv not in (None, "", []):
+                            # if this error looks like a timeout/slow-response, skip
+                            if is_ignored_error_text(fv):
+                                continue
                             flat["__points__"] = -400
                             err_found = True
                             break

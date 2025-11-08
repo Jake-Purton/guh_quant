@@ -9,7 +9,7 @@ use std::error::Error;
 
 use investor::InvestorProfile;
 use stocks::{Stock, prefetch_all_stocks, fetch_historical_returns};
-use portfolio::{filter_stocks_by_profile, build_portfolio, BUDGET_SPEND_FRACTION};
+use portfolio::{filter_stocks_by_profile, build_portfolio, budget_spend_fraction};
 use portfolio::volatility_bucket;
 use points::PointsStore;
 use std::collections::{HashMap, HashSet};
@@ -462,7 +462,7 @@ async fn print_portfolio_and_submit(
             "end_year": profile.end_year,
         });
 
-        let alloc_budget = original_budget * BUDGET_SPEND_FRACTION;
+    let alloc_budget = original_budget * budget_spend_fraction();
 
         let portfolio_json: Vec<Value> = portfolio.iter().map(|(t, q)| json!({ "ticker": t, "quantity": q })).collect();
 
@@ -488,41 +488,65 @@ async fn print_portfolio_and_submit(
     
     // Reinforcement learning: immediate update of PointsStore using evaluator points
     if let Ok(resp_text) = &send_result {
-        // Try to parse evaluator response as JSON to extract numeric `points`.
-        let mut points_val: Option<f64> = None;
-        if let Ok(v) = serde_json::from_str::<Value>(resp_text) {
-            if v.is_object() {
-                if let Some(p) = v.get("points").and_then(|x| x.as_f64()) {
-                    points_val = Some(p);
-                }
-            } else if v.is_string() {
-                if let Some(s) = v.as_str() {
-                    if let Ok(inner) = serde_json::from_str::<Value>(s) {
-                        if let Some(p) = inner.get("points").and_then(|x| x.as_f64()) {
-                            points_val = Some(p);
+        // If the evaluator response contains timeout/slow indicators, skip RL update.
+        let resp_lc = resp_text.to_lowercase();
+        let ignore_patterns = [
+            "too slow",
+            "responded too slowly",
+            "context expired",
+            "timed out",
+            "timeout",
+            "expired",
+            "context deadline",
+        ];
+
+        let mut is_ignored = false;
+        for p in &ignore_patterns {
+            if resp_lc.contains(p) {
+                is_ignored = true;
+                break;
+            }
+        }
+
+        if is_ignored {
+            println!("[POINTS] Skipping RL update due to timeout/slow response indicator");
+        } else {
+            // Try to parse evaluator response as JSON to extract numeric `points`.
+            let mut points_val: Option<f64> = None;
+            if let Ok(v) = serde_json::from_str::<Value>(resp_text) {
+                if v.is_object() {
+                    if let Some(p) = v.get("points").and_then(|x| x.as_f64()) {
+                        points_val = Some(p);
+                    }
+                } else if v.is_string() {
+                    if let Some(s) = v.as_str() {
+                        if let Ok(inner) = serde_json::from_str::<Value>(s) {
+                            if let Some(p) = inner.get("points").and_then(|x| x.as_f64()) {
+                                points_val = Some(p);
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if let Some(points_num) = points_val {
-            // delta = points / 100 per your request
-            let delta = points_num / 100.0;
-            let mut ps = PointsStore::load("points_store.json");
-            for (ticker, _qty) in portfolio {
-                if let Some(stock) = eligible_stocks.iter().find(|s| &s.ticker == ticker) {
-                    let bucket = volatility_bucket(stock.volatility);
-                    ps.ensure_buckets(&ticker);
-                    ps.add_score(&ticker, bucket, delta);
-                } else {
-                    // If we don't have metadata, still apply to default (medium) bucket
-                    ps.ensure_buckets(&ticker);
-                    ps.add_score(&ticker, crate::points::VOL_MED, delta);
+            if let Some(points_num) = points_val {
+                // delta = points / 100 per your request
+                let delta = points_num / 100.0;
+                let mut ps = PointsStore::load("points_store.json");
+                for (ticker, _qty) in portfolio {
+                    if let Some(stock) = eligible_stocks.iter().find(|s| &s.ticker == ticker) {
+                        let bucket = volatility_bucket(stock.volatility);
+                        ps.ensure_buckets(&ticker);
+                        ps.add_score(&ticker, bucket, delta);
+                    } else {
+                        // If we don't have metadata, still apply to default (medium) bucket
+                        ps.ensure_buckets(&ticker);
+                        ps.add_score(&ticker, crate::points::VOL_MED, delta);
+                    }
                 }
+                ps.save();
+                // eprintln!("[POINTS] Applied delta {:.4} for {} tickers", delta, portfolio.len());
             }
-            ps.save();
-            // eprintln!("[POINTS] Applied delta {:.4} for {} tickers", delta, portfolio.len());
         }
     }
     

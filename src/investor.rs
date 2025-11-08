@@ -34,7 +34,7 @@ impl InvestorProfile {
         // If no age is provided, default to 45 (moderate risk)
         let age = Self::extract_number(&msg_lower, r"(\d+)-year-old")
             .or_else(|| Self::extract_number(&msg_lower, r"(\d+)\s+years?\s+old"))
-            .ok_or("no age")?;
+            .unwrap_or(45);
 
         // Extract budget - pattern: "budget of $X" or "$X"
         let budget = Self::extract_money(&msg_lower, r"budget of \$([0-9,]+)")

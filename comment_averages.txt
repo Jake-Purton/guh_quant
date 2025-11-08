@@ -7,4 +7,16 @@
 //change algo: 6.6819975652084125
 // avoid.com bubble + add reinforcment learning: 43.665186210465556
 // after points heuristic: 58.218114674676784
-// new alg: -5.512536619310968
+// new alg: -17.681621997571497
+// inc budget spend: 8.620539839474937
+// update concenteate: 26.255830856409357
+// more budget: -1.2486378897931194
+// new alg: 179.2931743079467
+// checkpoint: 90.34363697648045
+//chpt2: 31.014236395439365
+//alg chnge: 109.98890870034458
+// alg?: 154.3352039028196
+// new heuristics: 259.6288539631019
+// new algo?: 106.26081609421657
+// more alloc: -66.31350690448345
+// fucked up: 30.80612759454976
