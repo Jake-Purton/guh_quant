@@ -180,7 +180,7 @@ pub async fn prefetch_all_stocks() -> Result<Vec<Stock>, Box<dyn Error>> {
 }
 
 // Update prices from Yahoo Finance in batches and persist into the cache JSON
-pub async fn update_current_prices_and_persist(cache_file: &str, stocks: &mut [Stock]) -> Result<(), Box<dyn Error>> {
+pub async fn update_current_prices_and_persist(cache_file: &str, stocks: &mut [Stock]) -> Result<(), Box<dyn Error + Send + Sync>> {
     // Small batch size to avoid URL length / throttling
     let batch_size = 50;
     let client = reqwest::Client::builder()
@@ -312,7 +312,7 @@ fn fetch_from_monthly_cache(stocks: &mut [Stock], start_date: &str, end_date: &s
     println!("[CACHE] Using monthly price data for period {} to {}", start_date, end_date);
     
     let mut hits = 0;
-    let mut misses = 0;
+    let mut _misses = 0;
     
     for stock in stocks.iter_mut() {
         if let (Some(start_price), Some(end_price)) = 
@@ -324,10 +324,10 @@ fn fetch_from_monthly_cache(stocks: &mut [Stock], start_date: &str, end_date: &s
                 stock.historical_start_price = Some(start_price);
                 hits += 1;
             } else {
-                misses += 1;
+                _misses += 1;
             }
         } else {
-            misses += 1;
+            _misses += 1;
         }
     }
     
